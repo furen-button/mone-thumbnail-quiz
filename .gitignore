@@ -30,3 +30,8 @@ dist-ssr
 
 # Temporary files created by Copilot
 tmp-copilot
+
+# Playwright test results
+/test-results/
+/playwright-report/
+/playwright/.cache/

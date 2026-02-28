@@ -1,73 +1,96 @@
-# React + TypeScript + Vite
+# YouTube公開時期ソートゲーム
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+にじさんじライバーのYouTube動画サムネイルを公開日順に並び替えるゲームです。
 
-Currently, two official plugins are available:
+##  ゲームの遊び方
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+1. 難易度を選択（初級:5件 / 上級:10件）してゲーム開始
+2. 表示された動画サムネイルをドラッグ&ドロップで並び替え
+3. 公開日が古い順に並び替えて「回答をチェック」をクリック
+4. 結果が表示されます（正解率、各動画の正誤、公開日）
 
-## React Compiler
+##  サポートブラウザ
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Chrome, Edge, Firefox, Safari（最新版）
+- スマートフォン・タブレット対応
 
-## Expanding the ESLint configuration
+##  技術スタック
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **フレームワーク**: Vite + React + TypeScript
+- **ドラッグ&ドロップ**: @dnd-kit
+- **デプロイ**: GitHub Pages
+- **テスト**: Playwright
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+##  開発者向け
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### セットアップ
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+# 依存関係のインストール
+npm install
+
+# 開発サーバーの起動
+npm run dev
+
+# ビルド
+npm run build
+
+# プレビュー
+npm run preview
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### YouTube動画データの取得
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```bash
+# YouTube Data API キーを .env に設定
+YOUTUBE_API_KEY=your_api_key_here
+YOUTUBE_CHANNEL_IDS=channel_id_1,channel_id_2
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# 動画情報とサムネイルを取得
+npm run fetch-videos
 ```
+
+### テスト
+
+```bash
+# E2Eテストの実行
+npm test
+
+# テストをUIモードで実行
+npm run test:ui
+
+# テストレポートの表示
+npm run test:report
+```
+
+##  プロジェクト構成
+
+```
+nijisanji-thumbnail-quiz/
+├── src/
+│   ├── components/          # Reactコンポーネント
+│   │   ├── VideoCard.tsx   # 動画カード（ドラッグ可能）
+│   │   ├── SortableContainer.tsx  # ドラッグ&ドロップコンテナ
+│   │   └── ResultModal.tsx # 結果表示モーダル
+│   ├── utils/              # ユーティリティ関数
+│   │   ├── gameLogic.ts    # ゲームロジック
+│   │   └── sound.ts        # 効果音
+│   ├── types/              # TypeScript型定義
+│   └── App.tsx             # メインアプリケーション
+├── public/
+│   ├── data/
+│   │   └── videos.json     # 動画メタデータ
+│   └── thumbnails/         # サムネイル画像
+├── e2e/                    # E2Eテスト
+│   └── game.spec.ts
+├── scripts/
+│   └── fetch-videos.ts     # 動画データ取得スクリプト
+└── .github/
+    └── workflows/
+        └── deploy.yml      # 自動デプロイ設定
+```
+
+##  ライセンス
+
+MIT
+
