@@ -39,7 +39,7 @@ npm run fetch-videos
 ```
 
 このスクリプトは以下を実行します：
-1. YouTube Data API から各チャンネルの動画情報を取得（各チャンネル最大200件程度）
+1. YouTube Data API から各チャンネルの全動画情報を取得（nextPageTokenがなくなるまで）
 2. 全チャンネルの動画を公開日順にソート
 3. サムネイル画像を `public/thumbnails/` にダウンロード
 4. 動画メタデータ（ID, タイトル, 公開日, URL, チャンネル情報）を `public/data/videos.json` に保存

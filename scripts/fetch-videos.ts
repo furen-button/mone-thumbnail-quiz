@@ -14,6 +14,15 @@ const __dirname = path.dirname(__filename);
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const CHANNEL_IDS = process.env.YOUTUBE_CHANNEL_IDS || '';
 const MAX_RESULTS = 50; // 1回のAPIリクエストで取得する動画数
+const API_WAIT_MS = 5000; // APIリクエスト間の待ち時間（ミリ秒）
+const DOWNLOAD_WAIT_MS = 1000; // ダウンロード間の待ち時間（ミリ秒）
+
+/**
+ * 指定ミリ秒待機
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 interface VideoData {
   id: string;
@@ -38,8 +47,8 @@ async function fetchVideosFromChannel(channelId: string): Promise<VideoData[]> {
 
   console.log(`チャンネル ${channelId} から動画情報を取得中...`);
 
-  // 複数ページ取得（最大200件程度）
-  for (let i = 0; i < 4; i++) {
+  // 全ページ取得（nextPageTokenがなくなるまで）
+  while (true) {
     const url = new URL('https://www.googleapis.com/youtube/v3/search');
     url.searchParams.append('key', YOUTUBE_API_KEY);
     url.searchParams.append('channelId', channelId);
@@ -76,6 +85,9 @@ async function fetchVideosFromChannel(channelId: string): Promise<VideoData[]> {
     if (!pageToken) {
       break;
     }
+
+    // API制限を避けるため待機
+    await sleep(API_WAIT_MS);
   }
 
   return videos;
@@ -131,10 +143,17 @@ async function main() {
 
     // 動画情報取得（複数チャンネル）
     const allVideos: VideoData[] = [];
-    for (const channelId of channelIds) {
+    for (let i = 0; i < channelIds.length; i++) {
+      const channelId = channelIds[i];
       const videos = await fetchVideosFromChannel(channelId);
       allVideos.push(...videos);
       console.log(`  → ${videos.length} 件取得\n`);
+      
+      // 次のチャンネル取得前に待機
+      if (i < channelIds.length - 1) {
+        console.log('次のチャンネル取得前に待機中...\n');
+        await sleep(API_WAIT_MS * 2);
+      }
     }
 
     console.log(`合計 ${allVideos.length} 件の動画を取得しました`);
@@ -144,17 +163,35 @@ async function main() {
 
     // サムネイルダウンロード
     console.log('\nサムネイル画像をダウンロード中...');
+    let downloadedCount = 0;
+    let skippedCount = 0;
+    
     for (let i = 0; i < allVideos.length; i++) {
       const video = allVideos[i];
       const thumbnailPath = path.join(thumbnailsDir, `${video.id}.jpg`);
       
+      // 既にダウンロード済みならスキップ
+      if (fs.existsSync(thumbnailPath)) {
+        skippedCount++;
+        console.log(`[${i + 1}/${allVideos.length}] ${video.id}.jpg (スキップ)`);
+        continue;
+      }
+      
       try {
         await downloadThumbnail(video.thumbnailUrl, thumbnailPath);
-        console.log(`[${i + 1}/${allVideos.length}] ${video.id}.jpg`);
+        downloadedCount++;
+        console.log(`[${i + 1}/${allVideos.length}] ${video.id}.jpg (ダウンロード)`);
+        
+        // ダウンロード間隔を空ける
+        if (i < allVideos.length - 1) {
+          await sleep(DOWNLOAD_WAIT_MS);
+        }
       } catch (err) {
         console.error(`エラー: ${video.id} のダウンロードに失敗`, err);
       }
     }
+
+    console.log(`\nダウンロード: ${downloadedCount} 件, スキップ: ${skippedCount} 件`);
 
     // videos.json 生成
     const jsonPath = path.join(dataDir, 'videos.json');
