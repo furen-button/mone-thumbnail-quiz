@@ -65,6 +65,122 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
+/* 難易度選択画面 */
+.difficulty-selector {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.difficulty-selector h2 {
+  color: white;
+  font-size: 2rem;
+  margin-bottom: 30px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.difficulty-buttons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.difficulty-button {
+  background: white;
+  color: #667eea;
+  border: 3px solid transparent;
+  border-radius: 20px;
+  padding: 20px 40px;
+  font-size: 1.3rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.difficulty-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.difficulty-button.active {
+  background: #4caf50;
+  color: white;
+  border-color: white;
+}
+
+.start-button {
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 30px;
+  padding: 20px 60px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.start-button:hover {
+  background: #ff5252;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.start-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* 結果画面 */
+.result-accuracy {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.result-info {
+  text-align: center;
+  color: white;
+  font-size: 1.3rem;
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.retry-button {
+  background: #ff9800;
+  color: white;
+  border: none;
+  border-radius: 30px;
+  padding: 16px 48px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.retry-button:hover {
+  background: #fb8c00;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.retry-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.difficulty-info {
+  font-size: 1rem;
+  opacity: 0.8;
+  margin-top: 8px;
+}
+
 /* レスポンシブ対応 */
 @media (max-width: 768px) {
   .app-header h1 {
@@ -77,6 +193,33 @@
   
   .check-button {
     padding: 14px 40px;
+    font-size: 1.1rem;
+  }
+  
+  .difficulty-selector h2 {
+    font-size: 1.5rem;
+  }
+  
+  .difficulty-buttons {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .difficulty-button {
+    padding: 16px 32px;
+    font-size: 1.1rem;
+  }
+  
+  .start-button {
+    padding: 16px 48px;
+    font-size: 1.3rem;
+  }
+  
+  .result-accuracy {
+    font-size: 1.5rem;
+  }
+  
+  .result-info {
     font-size: 1.1rem;
   }
 }
@@ -97,5 +240,28 @@
   .check-button {
     padding: 12px 32px;
     font-size: 1rem;
+  }
+  
+  .difficulty-selector {
+    padding: 30px 15px;
+  }
+  
+  .difficulty-selector h2 {
+    font-size: 1.3rem;
+  }
+  
+  .difficulty-button {
+    padding: 14px 28px;
+    font-size: 1rem;
+  }
+  
+  .start-button {
+    padding: 14px 40px;
+    font-size: 1.2rem;
+  }
+  
+  .retry-button {
+    padding: 14px 40px;
+    font-size: 1.1rem;
   }
 }
