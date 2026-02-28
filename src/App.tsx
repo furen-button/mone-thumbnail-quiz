@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { SortableContainer } from './components/SortableContainer';
+import { ResultModal } from './components/ResultModal';
 import type { VideoData } from './types/video';
 import { 
   getRandomVideos, 
@@ -8,6 +9,7 @@ import {
   sortByPublishedDate,
   type Difficulty 
 } from './utils/gameLogic';
+import { playSuccess, playFailure } from './utils/sound';
 import './App.css';
 
 function App() {
@@ -67,6 +69,15 @@ function App() {
    */
   const handleCheck = () => {
     setShowResult(true);
+    const isCorrect = checkOrder(currentVideos);
+    // 結果に応じて効果音を再生
+    setTimeout(() => {
+      if (isCorrect) {
+        playSuccess();
+      } else {
+        playFailure();
+      }
+    }, 300);
   };
 
   /**
@@ -130,21 +141,23 @@ function App() {
     const accuracy = calculateAccuracy(currentVideos, correctVideos);
 
     return (
-      <div className="app">
-        <header className="app-header">
-          <h1>{isCorrect ? '🎉 完璧です！' : '😢 惜しい！'}</h1>
-          <p className="result-accuracy">正解率: {accuracy}%</p>
-        </header>
-        <div className="result-info">
-          <p>{isCorrect ? '全ての動画を正しい順序に並べました！' : '順序が間違っています。もう一度挑戦してみましょう！'}</p>
+      <>
+        <div className="app">
+          <header className="app-header">
+            <h1>YouTube公開時期ソートゲーム</h1>
+            <p>動画を公開日が古い順に並び替えてください</p>
+            <p className="difficulty-info">難易度: {difficulty === 5 ? '初級（5件）' : '上級（10件）'}</p>
+          </header>
+          <SortableContainer videos={currentVideos} onReorder={handleReorder} />
         </div>
-        <SortableContainer videos={currentVideos} onReorder={handleReorder} />
-        <div className="app-footer">
-          <button className="retry-button" onClick={handleRetry}>
-            もう一度プレイ
-          </button>
-        </div>
-      </div>
+        <ResultModal
+          userVideos={currentVideos}
+          correctVideos={correctVideos}
+          isCorrect={isCorrect}
+          accuracy={accuracy}
+          onRetry={handleRetry}
+        />
+      </>
     );
   }
 

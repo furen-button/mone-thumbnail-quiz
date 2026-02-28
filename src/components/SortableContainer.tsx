@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -5,6 +6,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  DragOverlay,
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -14,6 +16,7 @@ import {
 } from '@dnd-kit/sortable';
 import { VideoCard } from './VideoCard';
 import type { VideoData } from '../types/video';
+import { playDragStart, playDrop } from '../utils/sound';
 import './SortableContainer.css';
 
 /**
@@ -26,6 +29,8 @@ interface SortableContainerProps {
 }
 
 export function SortableContainer({ videos, onReorder }: SortableContainerProps) {
+  const [activeId, setActiveId] = useState<string | null>(null);
+
   // ドラッグ操作用のセンサー設定
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -39,6 +44,14 @@ export function SortableContainer({ videos, onReorder }: SortableContainerProps)
   );
 
   /**
+   * ドラッグ開始時の処理
+   */
+  const handleDragStart = (event: any) => {
+    setActiveId(event.active.id);
+    playDragStart();
+  };
+
+  /**
    * ドラッグ終了時の処理
    */
   const handleDragEnd = (event: any) => {
@@ -50,13 +63,21 @@ export function SortableContainer({ videos, onReorder }: SortableContainerProps)
 
       const newVideos = arrayMove(videos, oldIndex, newIndex);
       onReorder(newVideos);
+      playDrop();
     }
+
+    setActiveId(null);
   };
+
+  // ドラッグ中のアイテムを取得
+  const activeVideo = activeId ? videos.find((v) => v.id === activeId) : null;
+  const activeIndex = activeVideo ? videos.findIndex((v) => v.id === activeId) : -1;
 
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
       <SortableContext
@@ -69,6 +90,20 @@ export function SortableContainer({ videos, onReorder }: SortableContainerProps)
           ))}
         </div>
       </SortableContext>
+      <DragOverlay>
+        {activeVideo ? (
+          <div className="video-card video-card-overlay">
+            <div className="video-card-number">{activeIndex + 1}</div>
+            <div className="video-card-thumbnail">
+              <img
+                src={`${import.meta.env.BASE_URL}thumbnails/${activeVideo.id}.jpg`}
+                alt={activeVideo.title}
+              />
+            </div>
+            <div className="video-card-title">{activeVideo.title}</div>
+          </div>
+        ) : null}
+      </DragOverlay>
     </DndContext>
   );
 }
