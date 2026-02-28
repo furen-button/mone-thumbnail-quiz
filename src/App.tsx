@@ -1,35 +1,73 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect } from 'react';
+import { SortableContainer } from './components/SortableContainer';
+import type { VideoData } from './types/video';
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [videos, setVideos] = useState<VideoData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  /**
+   * 動画データの読み込み
+   */
+  useEffect(() => {
+    async function loadVideos() {
+      try {
+        const response = await fetch(`${import.meta.env.BASE_URL}data/videos.json`);
+        if (!response.ok) {
+          throw new Error('動画データの読み込みに失敗しました');
+        }
+        const allVideos: VideoData[] = await response.json();
+        
+        // テスト用に最初の5件を取得
+        const testVideos = allVideos.slice(0, 5);
+        setVideos(testVideos);
+        setLoading(false);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '不明なエラー');
+        setLoading(false);
+      }
+    }
+
+    loadVideos();
+  }, []);
+
+  /**
+   * 動画順序の更新
+   */
+  const handleReorder = (newVideos: VideoData[]) => {
+    setVideos(newVideos);
+  };
+
+  if (loading) {
+    return (
+      <div className="app">
+        <div className="loading">読み込み中...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="app">
+        <div className="error">エラー: {error}</div>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="app">
+      <header className="app-header">
+        <h1>YouTube公開時期ソートゲーム</h1>
+        <p>動画を公開日が古い順に並び替えてください</p>
+      </header>
+      <SortableContainer videos={videos} onReorder={handleReorder} />
+      <div className="app-footer">
+        <button className="check-button">並び順を確認</button>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;
