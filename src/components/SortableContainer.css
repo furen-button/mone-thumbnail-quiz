@@ -1,23 +1,21 @@
 .sortable-container {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px 20px;
-  max-width: 800px;
+  gap: 5px;
+  padding: 4px 16px 70px;
+  max-width: 820px;
   margin: 0 auto;
+  width: 100%;
+  list-style: none;
 }
 
-/* レスポンシブ対応 */
-@media (max-width: 768px) {
-  .sortable-container {
-    padding: 8px 12px;
-    gap: 8px;
-  }
+.sortable-item {
+  list-style: none;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 520px) {
   .sortable-container {
-    padding: 6px 8px;
+    padding: 6px 10px 110px;
     gap: 6px;
   }
 }

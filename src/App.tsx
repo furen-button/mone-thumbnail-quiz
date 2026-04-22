@@ -1,181 +1,338 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { SortableContainer } from './components/SortableContainer';
 import { ResultModal } from './components/ResultModal';
 import type { VideoData } from './types/video';
-import { 
-  getRandomVideos, 
-  checkOrder, 
-  calculateAccuracy, 
+import {
+  getRandomVideos,
+  checkOrder,
+  calculateAccuracy,
   sortByPublishedDate,
-  type Difficulty 
+  formatDuration,
+  getBestRecord,
+  updateBestRecord,
+  getSavedMoveMode,
+  saveMoveMode,
+  type Difficulty,
+  type BestRecord,
+  type MoveMode,
 } from './utils/gameLogic';
 import { playSuccess, playFailure } from './utils/sound';
 import './App.css';
 
+type Screen = 'menu' | 'playing' | 'result';
+
+interface ResultSnapshot {
+  userVideos: VideoData[];
+  correctVideos: VideoData[];
+  isCorrect: boolean;
+  accuracy: number;
+  durationMs: number;
+  isNewBest: boolean;
+}
+
+const DIFFICULTIES: { value: Difficulty; label: string; caption: string }[] = [
+  { value: 5, label: '初級', caption: '5件' },
+  { value: 7, label: '上級', caption: '7件' },
+];
+
 function App() {
   const [allVideos, setAllVideos] = useState<VideoData[]>([]);
+  const [screen, setScreen] = useState<Screen>('menu');
+  const [difficulty, setDifficulty] = useState<Difficulty>(5);
   const [currentVideos, setCurrentVideos] = useState<VideoData[]>([]);
   const [correctVideos, setCorrectVideos] = useState<VideoData[]>([]);
-  const [difficulty, setDifficulty] = useState<Difficulty>(5);
-  const [gameStarted, setGameStarted] = useState(false);
-  const [showResult, setShowResult] = useState(false);
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [elapsedMs, setElapsedMs] = useState(0);
+  const [result, setResult] = useState<ResultSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [bestRecords, setBestRecords] = useState<Record<string, BestRecord | null>>(
+    () =>
+      Object.fromEntries(DIFFICULTIES.map((d) => [d.value, getBestRecord(d.value)])) as Record<
+        string,
+        BestRecord | null
+      >
+  );
+  const [moveMode, setMoveMode] = useState<MoveMode>(() => getSavedMoveMode());
 
-  /**
-   * 動画データの読み込み
-   */
+  const changeMoveMode = (mode: MoveMode) => {
+    setMoveMode(mode);
+    saveMoveMode(mode);
+  };
+
   useEffect(() => {
-    async function loadVideos() {
+    async function load() {
       try {
         const response = await fetch(`${import.meta.env.BASE_URL}data/videos.json`);
-        if (!response.ok) {
-          throw new Error('動画データの読み込みに失敗しました');
-        }
+        if (!response.ok) throw new Error('動画データの読み込みに失敗しました');
         const videos: VideoData[] = await response.json();
         setAllVideos(videos);
-        setLoading(false);
       } catch (err) {
         setError(err instanceof Error ? err.message : '不明なエラー');
+      } finally {
         setLoading(false);
       }
     }
-
-    loadVideos();
+    load();
   }, []);
 
-  /**
-   * ゲーム開始
-   */
-  const startGame = () => {
-    const randomVideos = getRandomVideos(allVideos, difficulty);
-    const sorted = sortByPublishedDate(randomVideos);
-    
-    setCorrectVideos(sorted);
+  useEffect(() => {
+    if (screen !== 'playing' || startedAt === null) return;
+    const id = window.setInterval(() => {
+      setElapsedMs(Date.now() - startedAt);
+    }, 100);
+    return () => window.clearInterval(id);
+  }, [screen, startedAt]);
+
+  const startGame = (chosen: Difficulty = difficulty) => {
+    const randomVideos = getRandomVideos(allVideos, chosen);
+    setDifficulty(chosen);
+    setCorrectVideos(sortByPublishedDate(randomVideos));
     setCurrentVideos(randomVideos);
-    setGameStarted(true);
-    setShowResult(false);
+    setStartedAt(Date.now());
+    setElapsedMs(0);
+    setResult(null);
+    setScreen('playing');
   };
 
-  /**
-   * 動画順序の更新
-   */
-  const handleReorder = (newVideos: VideoData[]) => {
-    setCurrentVideos(newVideos);
-  };
+  const handleReorder = (videos: VideoData[]) => setCurrentVideos(videos);
 
-  /**
-   * 並び順を確認
-   */
   const handleCheck = () => {
-    setShowResult(true);
+    const finishedAt = Date.now();
+    const durationMs = startedAt ? finishedAt - startedAt : 0;
     const isCorrect = checkOrder(currentVideos);
-    // 結果に応じて効果音を再生
-    setTimeout(() => {
-      if (isCorrect) {
-        playSuccess();
-      } else {
-        playFailure();
-      }
-    }, 300);
+    const accuracy = calculateAccuracy(currentVideos, correctVideos);
+    const isNewBest = updateBestRecord(difficulty, { accuracy, durationMs });
+    setBestRecords((prev) => ({ ...prev, [String(difficulty)]: getBestRecord(difficulty) }));
+    setResult({
+      userVideos: currentVideos,
+      correctVideos,
+      isCorrect,
+      accuracy,
+      durationMs,
+      isNewBest,
+    });
+    setElapsedMs(durationMs);
+    setStartedAt(null);
+    setScreen('result');
+    window.setTimeout(() => (isCorrect ? playSuccess() : playFailure()), 250);
   };
 
-  /**
-   * もう一度プレイ
-   */
-  const handleRetry = () => {
-    startGame();
+  const backToMenu = () => {
+    setResult(null);
+    setScreen('menu');
   };
+
+  const correctCount = useMemo(
+    () => currentVideos.filter((v, i) => correctVideos[i]?.id === v.id).length,
+    [currentVideos, correctVideos]
+  );
 
   if (loading) {
     return (
-      <div className="app">
-        <div className="loading">読み込み中...</div>
+      <div className="app app-center">
+        <div className="spinner" aria-label="読み込み中" />
+        <p className="status-text">動画データを読み込んでいます…</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="app">
-        <div className="error">エラー: {error}</div>
+      <div className="app app-center">
+        <div className="error-card">
+          <h2>読み込みに失敗しました</h2>
+          <p>{error}</p>
+        </div>
       </div>
     );
   }
 
-  // ゲーム開始前の画面
-  if (!gameStarted) {
+  if (screen === 'menu') {
     return (
       <div className="app">
-        <header className="app-header">
-          <h1>YouTube公開時期ソートゲーム</h1>
-          <p>動画を公開日が古い順に並び替えてください</p>
+        <header className="hero">
+          <span className="hero-eyebrow">にじさんじ公式非公認</span>
+          <h1 className="hero-title">
+            サムネ<strong>公開順</strong>クイズ
+          </h1>
+          <p className="hero-lead">
+            ライバーの動画サムネイルを、<strong>公開日が古い順</strong>に並び替えよう。
+          </p>
         </header>
-        <div className="difficulty-selector">
-          <h2>難易度を選択</h2>
-          <div className="difficulty-buttons">
-            <button
-              className={`difficulty-button ${difficulty === 5 ? 'active' : ''}`}
-              onClick={() => setDifficulty(5)}
-            >
-              初級（5件）
-            </button>
-            <button
-              className={`difficulty-button ${difficulty === 10 ? 'active' : ''}`}
-              onClick={() => setDifficulty(10)}
-            >
-              上級（10件）
-            </button>
+
+        <section className="menu">
+          <h2 className="section-title">難易度を選ぼう</h2>
+          <div className="difficulty-grid">
+            {DIFFICULTIES.map((d) => {
+              const best = bestRecords[String(d.value)];
+              return (
+                <button
+                  key={d.value}
+                  type="button"
+                  className={`difficulty-card ${difficulty === d.value ? 'active' : ''}`}
+                  onClick={() => setDifficulty(d.value)}
+                >
+                  <span className="difficulty-label">{d.label}</span>
+                  <span className="difficulty-caption">{d.caption}</span>
+                  <span className="difficulty-best">
+                    {best
+                      ? `ベスト ${best.accuracy}% / ${formatDuration(best.durationMs)}`
+                      : 'ベスト未記録'}
+                  </span>
+                </button>
+              );
+            })}
           </div>
-          <button className="start-button" onClick={startGame}>
+          <div className="mode-picker" role="radiogroup" aria-label="並び替えの操作モード">
+            <span className="mode-picker-label">操作モード</span>
+            <div className="mode-toggle">
+              <button
+                type="button"
+                role="radio"
+                aria-checked={moveMode === 'insert'}
+                className={`mode-toggle-option ${moveMode === 'insert' ? 'active' : ''}`}
+                onClick={() => changeMoveMode('insert')}
+              >
+                挿入
+              </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={moveMode === 'swap'}
+                className={`mode-toggle-option ${moveMode === 'swap' ? 'active' : ''}`}
+                onClick={() => changeMoveMode('swap')}
+              >
+                入れ替え
+              </button>
+            </div>
+            <p className="mode-picker-help">
+              {moveMode === 'insert'
+                ? '挿入：ドラッグ先に差し込み、間のカードがずれます'
+                : '入れ替え：ドラッグ元とドロップ先を入れ替えます'}
+            </p>
+          </div>
+          <button type="button" className="primary-button" onClick={() => startGame(difficulty)}>
             ゲーム開始
+          </button>
+          <p className="menu-hint">
+            ドラッグ＆ドロップ、または各カードの <span aria-hidden>▲▼</span> ボタンで並び替え
+          </p>
+        </section>
+      </div>
+    );
+  }
+
+  if (screen === 'playing') {
+    const total = currentVideos.length;
+    const progress = total > 0 ? (correctCount / total) * 100 : 0;
+    return (
+      <div className="app">
+        <header className="play-header">
+          <div className="play-header-row">
+            <div className="play-chip">
+              <span className="chip-label">難易度</span>
+              <span className="chip-value">
+                {difficulty === 5 ? '初級 (5件)' : '上級 (7件)'}
+              </span>
+            </div>
+            <div
+              className="mode-toggle"
+              role="radiogroup"
+              aria-label="並び替えの操作モード"
+            >
+              <button
+                type="button"
+                role="radio"
+                aria-checked={moveMode === 'insert'}
+                className={`mode-toggle-option ${moveMode === 'insert' ? 'active' : ''}`}
+                onClick={() => changeMoveMode('insert')}
+                title="ドラッグ先に挿入し、間のカードがずれる"
+              >
+                挿入
+              </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={moveMode === 'swap'}
+                className={`mode-toggle-option ${moveMode === 'swap' ? 'active' : ''}`}
+                onClick={() => changeMoveMode('swap')}
+                title="ドラッグ元とドロップ先を入れ替える"
+              >
+                入れ替え
+              </button>
+            </div>
+            <div className="play-chip timer" aria-live="polite">
+              <span className="chip-label">タイム</span>
+              <span className="chip-value">{formatDuration(elapsedMs)}</span>
+            </div>
+          </div>
+          <div
+            className="play-progress"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={total}
+            aria-valuenow={correctCount}
+            aria-label="暫定で正しい位置のカード数"
+          >
+            <div className="play-progress-fill" style={{ width: `${progress}%` }} />
+          </div>
+        </header>
+
+        <SortableContainer
+          videos={currentVideos}
+          mode={moveMode}
+          onReorder={handleReorder}
+        />
+
+        <div className="play-footer">
+          <button type="button" className="ghost-button" onClick={backToMenu}>
+            メニューへ
+          </button>
+          <button type="button" className="primary-button" onClick={handleCheck}>
+            回答をチェック
           </button>
         </div>
       </div>
     );
   }
 
-  // 結果表示
-  if (showResult) {
-    const isCorrect = checkOrder(currentVideos);
-    const accuracy = calculateAccuracy(currentVideos, correctVideos);
-
-    return (
-      <>
-        <div className="app">
-          <header className="app-header">
-            <h1>YouTube公開時期ソートゲーム</h1>
-            <p>動画を公開日が古い順に並び替えてください</p>
-            <p className="difficulty-info">難易度: {difficulty === 5 ? '初級（5件）' : '上級（10件）'}</p>
-          </header>
-          <SortableContainer videos={currentVideos} onReorder={handleReorder} />
-        </div>
-        <ResultModal
-          userVideos={currentVideos}
-          correctVideos={correctVideos}
-          isCorrect={isCorrect}
-          accuracy={accuracy}
-          onRetry={handleRetry}
-        />
-      </>
-    );
-  }
-
-  // ゲームプレイ中
+  // result
+  if (!result) return null;
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1>YouTube公開時期ソートゲーム</h1>
-        <p>動画を公開日が古い順に並び替えてください</p>
-        <p className="difficulty-info">難易度: {difficulty === 5 ? '初級（5件）' : '上級（10件）'}</p>
-      </header>
-      <SortableContainer videos={currentVideos} onReorder={handleReorder} />
-      <div className="app-footer">
-        <button className="check-button" onClick={handleCheck}>
-          並び順を確認
-        </button>
+    <>
+      <div className="app app-muted">
+        <header className="play-header">
+          <div className="play-header-row">
+            <div className="play-chip">
+              <span className="chip-label">難易度</span>
+              <span className="chip-value">
+                {difficulty === 5 ? '初級 (5件)' : '上級 (7件)'}
+              </span>
+            </div>
+            <div className="play-chip">
+              <span className="chip-label">タイム</span>
+              <span className="chip-value">{formatDuration(result.durationMs)}</span>
+            </div>
+          </div>
+        </header>
+        <SortableContainer
+          videos={result.userVideos}
+          mode={moveMode}
+          onReorder={() => {}}
+        />
       </div>
-    </div>
+      <ResultModal
+        userVideos={result.userVideos}
+        correctVideos={result.correctVideos}
+        isCorrect={result.isCorrect}
+        accuracy={result.accuracy}
+        durationMs={result.durationMs}
+        isNewBest={result.isNewBest}
+        onRetry={backToMenu}
+        onPlayAgain={() => startGame(difficulty)}
+      />
+    </>
   );
 }
 

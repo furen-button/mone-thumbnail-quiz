@@ -40,7 +40,10 @@ export function playFailure() {
  */
 function playTone(frequency: number, duration: number, volume: number = 0.1) {
   try {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const AudioCtx =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const audioContext = new AudioCtx();
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
 

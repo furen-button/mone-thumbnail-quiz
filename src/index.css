@@ -1,53 +1,86 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 :root {
-  font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Meiryo', sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  
-  color: #213547;
-  background-color: #ffffff;
+  --bg-1: #0b1120;
+  --bg-2: #1f2a4a;
+  --bg-3: #2a1e4a;
+  --surface: #ffffff;
+  --surface-muted: #f4f5fb;
+  --text: #111827;
+  --text-soft: #4b5563;
+  --text-inverse: #ffffff;
+  --accent: #ff5d8f;
+  --accent-dark: #e24676;
+  --primary: #4f46e5;
+  --primary-dark: #4338ca;
+  --success: #10b981;
+  --success-dark: #059669;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --ring: 0 0 0 3px rgba(99, 102, 241, 0.35);
+  --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.12);
+  --shadow-lg: 0 18px 48px rgba(15, 23, 42, 0.25);
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
 
+  font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Yu Gothic UI',
+    'Meiryo', system-ui, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color: var(--text);
+  color-scheme: light;
 }
 
-body {
+* {
+  box-sizing: border-box;
   margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
+  padding: 0;
 }
 
+html,
+body,
 #root {
   width: 100%;
   min-height: 100vh;
+  min-height: 100dvh;
+}
+
+body {
+  background: radial-gradient(1200px 600px at 10% -10%, #3b2a7a 0%, transparent 60%),
+    radial-gradient(900px 500px at 120% 10%, #1e3a8a 0%, transparent 60%),
+    linear-gradient(160deg, var(--bg-1), var(--bg-2) 55%, var(--bg-3));
+  background-attachment: fixed;
 }
 
 button {
   font-family: inherit;
   cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
 }
 
-/* スクロールバーのスタイル */
+button:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+a {
+  color: inherit;
+}
+
 ::-webkit-scrollbar {
   width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: rgba(0, 0, 0, 0.06);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 5px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 10px;
 }

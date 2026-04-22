@@ -1,254 +1,393 @@
 .app {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100dvh;
+  color: var(--text-inverse);
 }
 
-.app-header {
-  text-align: center;
-  padding: 20px 20px 10px;
-  color: white;
-}
-
-.app-header h1 {
-  font-size: 1.8rem;
-  margin: 0 0 8px 0;
-  font-weight: bold;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.app-header p {
-  font-size: 1rem;
-  margin: 0;
-  opacity: 0.9;
-}
-
-.loading,
-.error {
-  text-align: center;
-  padding: 40px;
-  color: white;
-  font-size: 1.5rem;
-}
-
-.error {
-  color: #ff6b6b;
-}
-
-.app-footer {
-  text-align: center;
-  padding: 20px 20px;
-}
-
-.check-button {
-  background: #4caf50;
-  color: white;
-  border: none;
-  border-radius: 30px;
-  padding: 12px 36px;
-  font-size: 1.1rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.check-button:hover {
-  background: #45a049;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-}
-
-.check-button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-/* 難易度選択画面 */
-.difficulty-selector {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 40px 20px;
-  text-align: center;
-}
-
-.difficulty-selector h2 {
-  color: white;
-  font-size: 2rem;
-  margin-bottom: 30px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.difficulty-buttons {
-  display: flex;
-  gap: 20px;
+.app-center {
+  align-items: center;
   justify-content: center;
-  margin-bottom: 40px;
+  gap: 16px;
 }
 
-.difficulty-button {
-  background: white;
-  color: #667eea;
-  border: 3px solid transparent;
-  border-radius: 20px;
-  padding: 20px 40px;
-  font-size: 1.3rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+.app-muted {
+  filter: blur(2px) saturate(0.8);
+  pointer-events: none;
+  user-select: none;
 }
 
-.difficulty-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+.status-text {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1rem;
 }
 
-.difficulty-button.active {
-  background: #4caf50;
-  color: white;
-  border-color: white;
+.spinner {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--accent);
+  animation: spin 0.8s linear infinite;
 }
 
-.start-button {
-  background: #ff6b6b;
-  color: white;
-  border: none;
-  border-radius: 30px;
-  padding: 20px 60px;
-  font-size: 1.5rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.start-button:hover {
-  background: #ff5252;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-}
-
-.start-button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-/* 結果画面 */
-.result-accuracy {
-  font-size: 2rem;
-  font-weight: bold;
-  margin-top: 10px;
-}
-
-.result-info {
+.error-card {
+  max-width: 380px;
+  background: var(--surface);
+  color: var(--text);
+  border-radius: var(--radius-lg);
+  padding: 24px;
   text-align: center;
-  color: white;
-  font-size: 1.3rem;
-  padding: 20px;
-  max-width: 600px;
+  box-shadow: var(--shadow-lg);
+}
+
+.error-card h2 {
+  margin-bottom: 8px;
+  color: var(--danger);
+}
+
+/* ===== Hero (menu) ===== */
+.hero {
+  text-align: center;
+  padding: 56px 24px 24px;
+}
+
+.hero-eyebrow {
+  display: inline-block;
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  color: rgba(255, 255, 255, 0.65);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  padding: 4px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+}
+
+.hero-title {
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.hero-title strong {
+  background: linear-gradient(90deg, var(--accent), #ffd166);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-lead {
+  margin-top: 14px;
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.hero-lead strong {
+  color: #ffd166;
+}
+
+.menu {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 8px 20px 48px;
+  width: 100%;
+}
+
+.section-title {
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 18px;
+  letter-spacing: 0.04em;
+}
+
+.difficulty-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.difficulty-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-lg);
+  padding: 22px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  text-align: center;
+  color: var(--text-inverse);
+  backdrop-filter: blur(6px);
+  transition: transform 0.15s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.difficulty-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.difficulty-card.active {
+  background: linear-gradient(135deg, rgba(255, 93, 143, 0.18), rgba(255, 209, 102, 0.18));
+  border-color: var(--accent);
+  box-shadow: 0 10px 30px rgba(255, 93, 143, 0.25);
+}
+
+.difficulty-label {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.difficulty-caption {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.difficulty-best {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.75);
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.primary-button {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  margin: 8px auto 10px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  color: var(--text-inverse);
+  border-radius: 999px;
+  padding: 16px 24px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  box-shadow: 0 10px 24px rgba(255, 93, 143, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.primary-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+  box-shadow: 0 14px 30px rgba(255, 93, 143, 0.45);
+}
+
+.primary-button:active {
+  transform: translateY(0);
+}
+
+.ghost-button {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-inverse);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  padding: 14px 22px;
+  font-size: 1rem;
+  font-weight: 700;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.ghost-button:hover {
+  background: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
+}
+
+.menu-hint {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.85rem;
+  margin-top: 14px;
+}
+
+/* ===== Mode toggle (挿入 / 入れ替え) ===== */
+.mode-picker {
+  margin: 14px auto 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.mode-picker-label {
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.mode-picker-help {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.75);
+  text-align: center;
+  min-height: 1.2em;
+}
+
+.mode-toggle {
+  display: inline-flex;
+  padding: 3px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  gap: 2px;
+}
+
+.mode-toggle-option {
+  padding: 6px 16px;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.mode-toggle-option:hover {
+  color: var(--text-inverse);
+}
+
+.mode-toggle-option.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  color: var(--text-inverse);
+  box-shadow: 0 4px 12px rgba(255, 93, 143, 0.35);
+}
+
+.play-header .mode-toggle {
+  flex-shrink: 0;
+}
+.play-header .mode-toggle-option {
+  padding: 5px 12px;
+  font-size: 0.8rem;
+}
+
+/* ===== Play screen ===== */
+.play-header {
+  padding: 8px 16px 4px;
+  max-width: 820px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.play-header-row {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.play-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 3px 10px;
+  border-radius: 10px;
+  min-width: 100px;
+}
+
+.play-chip.timer {
+  background: rgba(255, 93, 143, 0.18);
+  border-color: rgba(255, 93, 143, 0.5);
+}
+
+.chip-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.chip-value {
+  font-size: 1rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.play-prompt-inline {
+  flex: 1;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.85rem;
+}
+
+.play-prompt-inline strong {
+  color: #ffd166;
+}
+
+.play-progress {
+  margin-top: 8px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.play-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #ffd166);
+  transition: width 0.3s ease;
+}
+
+.play-footer {
+  position: sticky;
+  bottom: 0;
+  padding: 6px 16px calc(6px + env(safe-area-inset-bottom, 0));
+  background: linear-gradient(to top, rgba(11, 17, 32, 0.95), rgba(11, 17, 32, 0));
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  max-width: 820px;
+  width: 100%;
   margin: 0 auto;
 }
 
-.retry-button {
-  background: #ff9800;
-  color: white;
-  border: none;
-  border-radius: 30px;
-  padding: 16px 48px;
-  font-size: 1.2rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.retry-button:hover {
-  background: #fb8c00;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-}
-
-.retry-button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.difficulty-info {
+.play-footer .primary-button {
+  margin: 0;
+  max-width: 420px;
+  flex: 1;
+  padding: 12px 20px;
   font-size: 1rem;
-  opacity: 0.8;
-  margin-top: 8px;
 }
 
-/* レスポンシブ対応 */
-@media (max-width: 768px) {
-  .app-header h1 {
-    font-size: 2rem;
-  }
-  
-  .app-header p {
-    font-size: 1rem;
-  }
-  
-  .check-button {
-    padding: 14px 40px;
-    font-size: 1.1rem;
-  }
-  
-  .difficulty-selector h2 {
-    font-size: 1.5rem;
-  }
-  
-  .difficulty-buttons {
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .difficulty-button {
-    padding: 16px 32px;
-    font-size: 1.1rem;
-  }
-  
-  .start-button {
-    padding: 16px 48px;
-    font-size: 1.3rem;
-  }
+.play-footer .ghost-button {
+  padding: 11px 18px;
+  font-size: 0.95rem;
 }
 
-@media (max-width: 480px) {
-  .app-header {
-    padding: 30px 15px;
+/* ===== Responsive ===== */
+@media (max-width: 600px) {
+  .hero {
+    padding: 36px 16px 12px;
   }
-  
-  .app-header h1 {
-    font-size: 1.5rem;
+  .difficulty-grid {
+    gap: 10px;
   }
-  
-  .app-header p {
-    font-size: 0.9rem;
+  .difficulty-card {
+    padding: 16px 12px;
   }
-  
-  .check-button {
-    padding: 12px 32px;
-    font-size: 1rem;
-  }
-  
-  .difficulty-selector {
-    padding: 30px 15px;
-  }
-  
-  .difficulty-selector h2 {
-    font-size: 1.3rem;
-  }
-  
-  .difficulty-button {
-    padding: 14px 28px;
-    font-size: 1rem;
-  }
-  
-  .start-button {
-    padding: 14px 40px;
+  .difficulty-label {
     font-size: 1.2rem;
+  }
+  .play-chip {
+    min-width: 0;
+    flex: 1;
+  }
+  .primary-button {
+    padding: 14px 20px;
+    font-size: 1rem;
   }
 }
