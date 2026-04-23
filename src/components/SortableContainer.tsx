@@ -16,6 +16,7 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
+  type SortingStrategy,
 } from '@dnd-kit/sortable';
 import { VideoCard } from './VideoCard';
 import type { VideoData } from '../types/video';
@@ -37,6 +38,31 @@ function reorder(videos: VideoData[], from: number, to: number, mode: MoveMode):
   }
   return arrayMove(videos, from, to);
 }
+
+/**
+ * 入れ替えモード用のソート戦略。
+ * active と over のカードだけが互いの位置へ translateY し、それ以外はそのまま。
+ */
+const swapSortingStrategy: SortingStrategy = ({ activeIndex, overIndex, index, rects }) => {
+  if (activeIndex === -1 || overIndex === -1 || activeIndex === overIndex) return null;
+  if (index === activeIndex) {
+    return {
+      x: 0,
+      y: rects[overIndex].top - rects[activeIndex].top,
+      scaleX: 1,
+      scaleY: 1,
+    };
+  }
+  if (index === overIndex) {
+    return {
+      x: 0,
+      y: rects[activeIndex].top - rects[overIndex].top,
+      scaleX: 1,
+      scaleY: 1,
+    };
+  }
+  return null;
+};
 
 export function SortableContainer({ videos, mode, onReorder }: SortableContainerProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -85,8 +111,7 @@ export function SortableContainer({ videos, mode, onReorder }: SortableContainer
     >
       <SortableContext
         items={videos.map((v) => v.id)}
-        // swap モードではドラッグ中に他のカードを動かさない (静的な位置を維持)
-        strategy={mode === 'swap' ? undefined : verticalListSortingStrategy}
+        strategy={mode === 'swap' ? swapSortingStrategy : verticalListSortingStrategy}
       >
         <ol className="sortable-container" aria-label="並び替え対象の動画">
           {videos.map((video, index) => (
