@@ -82,9 +82,9 @@ const MODE_KEY = 'nijisanji-thumbnail-quiz:move-mode:v1';
 export function getSavedMoveMode(): MoveMode {
   try {
     const raw = localStorage.getItem(MODE_KEY);
-    return raw === 'swap' ? 'swap' : 'insert';
+    return raw === 'insert' ? 'insert' : 'swap';
   } catch {
-    return 'insert';
+    return 'swap';
   }
 }
 

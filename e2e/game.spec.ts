@@ -108,12 +108,20 @@ test.describe('操作モード (挿入 / 入れ替え)', () => {
     expect(afterSwap).toEqual([before2[2], before2[1], before2[0], before2[3], before2[4]]);
   });
 
-  test('モード選択は localStorage に保存される', async ({ page }) => {
+  test('初期表示では入れ替えモードが選択されている', async ({ page }) => {
     await page.goto(BASE);
-    await page.getByRole('radio', { name: '入れ替え' }).first().click();
-    await page.reload();
     await expect(
       page.getByRole('radio', { name: '入れ替え', checked: true }).first()
+    ).toBeVisible();
+  });
+
+  test('モード選択は localStorage に保存される', async ({ page }) => {
+    await page.goto(BASE);
+    // デフォルト (入れ替え) から挿入へ切替 → reload 後も挿入のまま
+    await page.getByRole('radio', { name: '挿入' }).first().click();
+    await page.reload();
+    await expect(
+      page.getByRole('radio', { name: '挿入', checked: true }).first()
     ).toBeVisible();
   });
 });
