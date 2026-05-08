@@ -208,12 +208,7 @@ function App() {
   }
 
   if (screen === 'menu') {
-    const heroName =
-      selectedChannel !== ALL_CHANNELS
-        ? channelMetas[selectedChannel]?.title ??
-          channels.find((c) => c.id === selectedChannel)?.title ??
-          'ぽやぽや香屋'
-        : 'ぽやぽや香屋';
+    const heroName = 'サムネイルクイズ';
     const heroIconSrc =
       selectedChannel !== ALL_CHANNELS && channelMetas[selectedChannel]
         ? `${import.meta.env.BASE_URL}${channelMetas[selectedChannel].iconPath}`
@@ -232,9 +227,7 @@ function App() {
             <span aria-hidden>🪷</span> {heroName}
           </h1>
           <p className="hero-lead">
-            アジアンな街角の小さな香屋へ、ようこそ。
-            <br />
-            サムネ公開順クイズで、店主との思い出をなぞってみませんか。
+            サムネ公開順クイズで、梢桃音との思い出をなぞってみませんか。
           </p>
         </header>
 
@@ -387,7 +380,7 @@ function App() {
             Thank you for visiting
           </p>
           <p className="site-footer-copy">
-            © 2026 ぽやぽや香屋ふぁんさいと. 公式とは関係のない非公式ファンサイトです。
+            公式とは関係のない非公式ファンサイトです。
           </p>
           <ul className="site-footer-links" aria-label="SNSリンク (準備中)">
             <li>
