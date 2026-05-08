@@ -12,6 +12,11 @@ import {
   updateBestRecord,
   getSavedMoveMode,
   saveMoveMode,
+  getSavedChannel,
+  saveChannel,
+  getChannels,
+  filterByChannel,
+  ALL_CHANNELS,
   type Difficulty,
   type BestRecord,
   type MoveMode,
@@ -53,18 +58,33 @@ function App() {
   const [result, setResult] = useState<ResultSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [bestRecords, setBestRecords] = useState<Record<string, BestRecord | null>>(
-    () =>
-      Object.fromEntries(DIFFICULTIES.map((d) => [d.value, getBestRecord(d.value)])) as Record<
-        string,
-        BestRecord | null
-      >
+  const [selectedChannel, setSelectedChannel] = useState<string>(() => getSavedChannel());
+  const [bestRecords, setBestRecords] = useState<Record<string, BestRecord | null>>(() =>
+    Object.fromEntries(
+      DIFFICULTIES.map((d) => [d.value, getBestRecord(d.value, getSavedChannel())])
+    ) as Record<string, BestRecord | null>
   );
   const [moveMode, setMoveMode] = useState<MoveMode>(() => getSavedMoveMode());
+
+  const channels = useMemo(() => getChannels(allVideos), [allVideos]);
+  const availableVideos = useMemo(
+    () => filterByChannel(allVideos, selectedChannel),
+    [allVideos, selectedChannel]
+  );
 
   const changeMoveMode = (mode: MoveMode) => {
     setMoveMode(mode);
     saveMoveMode(mode);
+  };
+
+  const changeChannel = (channelKey: string) => {
+    setSelectedChannel(channelKey);
+    saveChannel(channelKey);
+    setBestRecords(
+      Object.fromEntries(
+        DIFFICULTIES.map((d) => [d.value, getBestRecord(d.value, channelKey)])
+      ) as Record<string, BestRecord | null>
+    );
   };
 
   useEffect(() => {
@@ -92,7 +112,8 @@ function App() {
   }, [screen, startedAt]);
 
   const startGame = (chosen: Difficulty = difficulty) => {
-    const randomVideos = getRandomVideos(allVideos, chosen);
+    if (availableVideos.length < chosen) return;
+    const randomVideos = getRandomVideos(availableVideos, chosen);
     setDifficulty(chosen);
     setCorrectVideos(sortByPublishedDate(randomVideos));
     setCurrentVideos(randomVideos);
@@ -109,8 +130,11 @@ function App() {
     const durationMs = startedAt ? finishedAt - startedAt : 0;
     const isCorrect = checkOrder(currentVideos);
     const accuracy = calculateAccuracy(currentVideos, correctVideos);
-    const isNewBest = updateBestRecord(difficulty, { accuracy, durationMs });
-    setBestRecords((prev) => ({ ...prev, [String(difficulty)]: getBestRecord(difficulty) }));
+    const isNewBest = updateBestRecord(difficulty, selectedChannel, { accuracy, durationMs });
+    setBestRecords((prev) => ({
+      ...prev,
+      [String(difficulty)]: getBestRecord(difficulty, selectedChannel),
+    }));
     setResult({
       userVideos: currentVideos,
       correctVideos,
@@ -184,23 +208,50 @@ function App() {
         </header>
 
         <section className="menu">
+          {channels.length >= 2 && (
+            <div className="channel-picker">
+              <label className="channel-picker-label" htmlFor="channel-select">
+                チャンネル
+              </label>
+              <select
+                id="channel-select"
+                className="channel-select"
+                value={selectedChannel}
+                onChange={(e) => changeChannel(e.target.value)}
+              >
+                <option value={ALL_CHANNELS}>全チャンネル ({allVideos.length}件)</option>
+                {channels.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.title} ({c.count}件)
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <h2 className="section-title">難易度を選ぼう</h2>
           <div className="difficulty-grid">
             {DIFFICULTIES.map((d) => {
               const best = bestRecords[String(d.value)];
+              const insufficient = availableVideos.length < d.value;
               return (
                 <button
                   key={d.value}
                   type="button"
-                  className={`difficulty-card ${difficulty === d.value ? 'active' : ''}`}
-                  onClick={() => setDifficulty(d.value)}
+                  className={`difficulty-card ${difficulty === d.value ? 'active' : ''} ${
+                    insufficient ? 'disabled' : ''
+                  }`}
+                  onClick={() => !insufficient && setDifficulty(d.value)}
+                  disabled={insufficient}
+                  aria-disabled={insufficient}
                 >
                   <span className="difficulty-label">{d.label}</span>
                   <span className="difficulty-caption">{d.caption}</span>
                   <span className="difficulty-best">
-                    {best
-                      ? `ベスト ${best.accuracy}% / ${formatDuration(best.durationMs)}`
-                      : 'ベスト未記録'}
+                    {insufficient
+                      ? `動画不足 (${availableVideos.length}件)`
+                      : best
+                        ? `ベスト ${best.accuracy}% / ${formatDuration(best.durationMs)}`
+                        : 'ベスト未記録'}
                   </span>
                 </button>
               );
@@ -234,7 +285,12 @@ function App() {
                 : '入れ替え：ドラッグ元とドロップ先を入れ替えます'}
             </p>
           </div>
-          <button type="button" className="primary-button" onClick={() => startGame(difficulty)}>
+          <button
+            type="button"
+            className="primary-button"
+            onClick={() => startGame(difficulty)}
+            disabled={availableVideos.length < difficulty}
+          >
             ゲーム開始
           </button>
           <p className="menu-hint">

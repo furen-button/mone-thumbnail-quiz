@@ -68,7 +68,42 @@ export function formatDuration(ms: number): string {
 }
 
 /**
- * ベスト記録 (難易度ごとに1件のみ保持)
+ * 全チャンネルを表す疑似キー
+ */
+export const ALL_CHANNELS = 'all';
+
+export interface ChannelInfo {
+  id: string;
+  title: string;
+  count: number;
+}
+
+/**
+ * 動画一覧からチャンネル情報をユニークに抽出 (タイトル昇順)
+ */
+export function getChannels(videos: VideoData[]): ChannelInfo[] {
+  const map = new Map<string, ChannelInfo>();
+  for (const v of videos) {
+    const existing = map.get(v.channelId);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      map.set(v.channelId, { id: v.channelId, title: v.channelTitle, count: 1 });
+    }
+  }
+  return Array.from(map.values()).sort((a, b) => a.title.localeCompare(b.title, 'ja'));
+}
+
+/**
+ * 選択中チャンネルに該当する動画だけを返す。'all' の場合は全件。
+ */
+export function filterByChannel(videos: VideoData[], channelKey: string): VideoData[] {
+  if (channelKey === ALL_CHANNELS) return videos;
+  return videos.filter((v) => v.channelId === channelKey);
+}
+
+/**
+ * ベスト記録 (チャンネル × 難易度ごとに1件のみ保持)
  */
 export interface BestRecord {
   accuracy: number;
@@ -78,6 +113,7 @@ export interface BestRecord {
 
 const STORAGE_KEY = 'nijisanji-thumbnail-quiz:best-records:v1';
 const MODE_KEY = 'nijisanji-thumbnail-quiz:move-mode:v1';
+const CHANNEL_KEY = 'nijisanji-thumbnail-quiz:channel:v1';
 
 export function getSavedMoveMode(): MoveMode {
   try {
@@ -96,6 +132,22 @@ export function saveMoveMode(mode: MoveMode): void {
   }
 }
 
+export function getSavedChannel(): string {
+  try {
+    return localStorage.getItem(CHANNEL_KEY) ?? ALL_CHANNELS;
+  } catch {
+    return ALL_CHANNELS;
+  }
+}
+
+export function saveChannel(channelKey: string): void {
+  try {
+    localStorage.setItem(CHANNEL_KEY, channelKey);
+  } catch {
+    // 無視
+  }
+}
+
 function readAll(): Record<string, BestRecord> {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -106,8 +158,16 @@ function readAll(): Record<string, BestRecord> {
   }
 }
 
-export function getBestRecord(difficulty: Difficulty): BestRecord | null {
-  return readAll()[String(difficulty)] ?? null;
+function recordKey(channelKey: string, difficulty: Difficulty): string {
+  return `${channelKey}:${difficulty}`;
+}
+
+export function getBestRecord(
+  difficulty: Difficulty,
+  channelKey: string = ALL_CHANNELS
+): BestRecord | null {
+  const all = readAll();
+  return all[recordKey(channelKey, difficulty)] ?? null;
 }
 
 /**
@@ -116,10 +176,11 @@ export function getBestRecord(difficulty: Difficulty): BestRecord | null {
  */
 export function updateBestRecord(
   difficulty: Difficulty,
+  channelKey: string,
   candidate: Omit<BestRecord, 'achievedAt'>
 ): boolean {
   const all = readAll();
-  const key = String(difficulty);
+  const key = recordKey(channelKey, difficulty);
   const prev = all[key];
   const isBetter =
     !prev ||
