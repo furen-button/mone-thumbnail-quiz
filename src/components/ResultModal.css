@@ -1,7 +1,7 @@
 .result-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(5, 8, 20, 0.78);
+  background: rgba(74, 74, 74, 0.45);
   backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
@@ -36,30 +36,32 @@
 .result-header {
   text-align: center;
   padding: 36px 22px 26px;
-  color: var(--text-inverse);
-  background: linear-gradient(135deg, #4f46e5, #7c3aed 50%, #db2777);
+  color: var(--text-on-peach);
+  background: linear-gradient(135deg, var(--peach-soft), var(--peach), var(--lotus));
   position: relative;
 }
 
 .result-modal.is-correct .result-header {
-  background: linear-gradient(135deg, #10b981, #3b82f6 55%, #8b5cf6);
+  background: linear-gradient(135deg, var(--peach-soft), #c8e7d2, var(--lotus));
 }
 
 .result-modal.is-wrong .result-header {
-  background: linear-gradient(135deg, #ef4444, #f97316 55%, #7c3aed);
+  background: linear-gradient(135deg, var(--peach-soft), #f5b8a3, var(--lotus));
 }
 
 .result-headline {
+  font-family: var(--font-serif);
   font-size: clamp(1.8rem, 4.5vw, 2.4rem);
-  font-weight: 900;
-  letter-spacing: 0.01em;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 6px rgba(255, 255, 255, 0.45);
 }
 
 .result-sub {
   margin-top: 6px;
   font-size: 0.95rem;
-  opacity: 0.9;
+  color: var(--text);
+  opacity: 0.85;
 }
 
 .result-stats {
@@ -71,8 +73,8 @@
 }
 
 .stat {
-  background: rgba(255, 255, 255, 0.16);
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 14px;
   padding: 10px 16px;
   min-width: 120px;
@@ -85,32 +87,35 @@
 
 .stat-label {
   font-size: 0.72rem;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--text-soft);
 }
 
 .stat-value {
-  font-size: 1.6rem;
-  font-weight: 900;
+  font-family: var(--font-serif);
+  font-size: 1.55rem;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
+  color: var(--text);
 }
 
 .stat-value.accent {
-  color: #ffd166;
+  color: var(--lotus-deep);
 }
 
 .best-badge {
   display: inline-block;
   margin-top: 14px;
-  padding: 6px 16px;
-  background: rgba(255, 215, 102, 0.95);
-  color: #78350f;
-  border-radius: 999px;
-  font-weight: 800;
-  font-size: 0.85rem;
-  letter-spacing: 0.05em;
-  box-shadow: 0 6px 16px rgba(255, 215, 102, 0.5);
+  padding: 6px 18px;
+  background: linear-gradient(135deg, var(--lotus), var(--peach-deep));
+  color: #fff;
+  font-family: var(--font-serif);
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: 0.88rem;
+  letter-spacing: 0.08em;
+  box-shadow: 0 6px 16px rgba(245, 143, 165, 0.45);
 }
 
 .result-content {
@@ -134,7 +139,7 @@
 }
 
 .video-result-item {
-  border: 2px solid #e5e7eb;
+  border: 2px solid rgba(255, 218, 185, 0.7);
   border-radius: var(--radius-md);
   padding: 12px;
   background: var(--surface);
@@ -148,13 +153,13 @@
 }
 
 .video-result-item.correct {
-  border-color: rgba(16, 185, 129, 0.55);
-  background: linear-gradient(180deg, rgba(16, 185, 129, 0.08), transparent);
+  border-color: rgba(136, 199, 154, 0.65);
+  background: linear-gradient(180deg, rgba(136, 199, 154, 0.12), transparent);
 }
 
 .video-result-item.incorrect {
-  border-color: rgba(239, 68, 68, 0.55);
-  background: linear-gradient(180deg, rgba(239, 68, 68, 0.08), transparent);
+  border-color: rgba(217, 119, 119, 0.55);
+  background: linear-gradient(180deg, rgba(217, 119, 119, 0.1), transparent);
   animation: itemIn 0.35s ease forwards, shake 0.4s ease 0.35s;
 }
 
@@ -175,43 +180,47 @@
 }
 
 .video-number {
-  background: var(--text);
-  color: var(--text-inverse);
+  background: linear-gradient(135deg, var(--lotus), var(--peach-deep));
+  color: #fff;
+  font-family: var(--font-serif);
   width: 28px;
   height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
-  font-size: 0.85rem;
+  font-weight: 700;
+  font-size: 0.88rem;
 }
 
 .video-status {
-  font-size: 0.8rem;
-  font-weight: 800;
-  padding: 3px 10px;
-  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.06em;
 }
 
 .video-status.correct {
   background: var(--success);
-  color: var(--text-inverse);
+  color: #fff;
 }
 
 .video-status.incorrect {
   background: var(--danger);
-  color: var(--text-inverse);
+  color: #fff;
 }
 
 .video-date-chip {
   margin-left: auto;
-  font-size: 0.8rem;
-  color: var(--text-soft);
-  background: var(--surface-muted);
-  padding: 3px 10px;
-  border-radius: 999px;
+  font-family: var(--font-script);
+  font-size: 1rem;
+  color: var(--lotus-deep);
+  background: var(--surface-soft);
+  padding: 1px 12px;
+  border-radius: var(--radius-pill);
   font-variant-numeric: tabular-nums;
+  border: 1px solid rgba(255, 218, 185, 0.7);
 }
 
 .video-result-body {
@@ -226,7 +235,7 @@
   border-radius: var(--radius-sm);
   overflow: hidden;
   display: block;
-  background: #111;
+  background: var(--peach-soft);
   transition: transform 0.15s ease;
 }
 
@@ -264,11 +273,11 @@
 .your-answer {
   margin-top: 6px;
   font-size: 0.85rem;
-  color: #b91c1c;
-  padding: 6px 8px;
-  background: rgba(239, 68, 68, 0.08);
+  color: var(--danger);
+  padding: 6px 10px;
+  background: rgba(217, 119, 119, 0.08);
   border-left: 3px solid var(--danger);
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
 .your-answer .label {
@@ -277,23 +286,25 @@
 }
 
 .result-footer {
-  background: var(--surface-muted);
+  background: var(--surface-soft);
   padding: 20px;
   display: flex;
   gap: 12px;
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
+  border-top: 1px dashed rgba(245, 143, 165, 0.3);
 }
 
 .result-footer .ghost-button {
   color: var(--text);
-  background: rgba(15, 23, 42, 0.06);
-  border: 1px solid rgba(15, 23, 42, 0.15);
+  background: var(--surface);
+  border: 1px solid rgba(245, 143, 165, 0.4);
 }
 
 .result-footer .ghost-button:hover {
-  background: rgba(15, 23, 42, 0.1);
+  background: var(--surface-soft);
+  border-color: var(--lotus);
 }
 
 .result-footer .primary-button {

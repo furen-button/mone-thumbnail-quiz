@@ -33,7 +33,7 @@ async function startGame(page: Page, difficulty: '初級' | '上級') {
 test.describe('メニュー', () => {
   test('タイトル / 難易度 / ゲーム開始 ボタンが表示される', async ({ page }) => {
     await page.goto(BASE);
-    await expect(page.locator('.hero-title')).toContainText('サムネ');
+    await expect(page.locator('.hero-title')).toContainText('香屋');
     await expect(page.getByRole('button', { name: /初級/ })).toBeVisible();
     await expect(page.getByRole('button', { name: /上級/ })).toBeVisible();
     await expect(page.getByRole('button', { name: 'ゲーム開始' })).toBeVisible();

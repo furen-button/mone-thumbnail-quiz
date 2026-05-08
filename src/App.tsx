@@ -208,19 +208,48 @@ function App() {
   }
 
   if (screen === 'menu') {
+    const heroName =
+      selectedChannel !== ALL_CHANNELS
+        ? channelMetas[selectedChannel]?.title ??
+          channels.find((c) => c.id === selectedChannel)?.title ??
+          'ぽやぽや香屋'
+        : 'ぽやぽや香屋';
+    const heroIconSrc =
+      selectedChannel !== ALL_CHANNELS && channelMetas[selectedChannel]
+        ? `${import.meta.env.BASE_URL}${channelMetas[selectedChannel].iconPath}`
+        : null;
     return (
-      <div className="app">
-        <header className="hero">
-          <span className="hero-eyebrow">にじさんじ公式非公認</span>
+      <div className="app site">
+        <header className="hero" id="top">
+          <span className="hero-script" aria-hidden>
+            Welcome
+          </span>
+          <span className="hero-eyebrow">非公式ファンサイト</span>
+          {heroIconSrc && (
+            <img className="hero-icon" src={heroIconSrc} alt="" loading="lazy" />
+          )}
           <h1 className="hero-title">
-            サムネ<strong>公開順</strong>クイズ
+            <span aria-hidden>🪷</span> {heroName}
           </h1>
           <p className="hero-lead">
-            ライバーの動画サムネイルを、<strong>公開日が古い順</strong>に並び替えよう。
+            アジアンな街角の小さな香屋へ、ようこそ。
+            <br />
+            サムネ公開順クイズで、店主との思い出をなぞってみませんか。
           </p>
         </header>
 
-        <section className="menu">
+        <section className="wiki-section" id="quiz">
+          <header className="wiki-section-head">
+            <span className="script-eyebrow" aria-hidden>
+              Quiz
+            </span>
+            <h2 className="section-heading">クイズに挑戦</h2>
+          </header>
+          <p className="wiki-section-lead">
+            動画サムネイルを <strong>公開日が古い順</strong> に並べ替えるお遊び。
+            時間が経つほど、そっとヒントが増えていきます。
+          </p>
+
           {channels.length >= 2 && (
             <div className="channel-picker">
               <span className="channel-picker-label">チャンネル</span>
@@ -280,7 +309,8 @@ function App() {
               </div>
             </div>
           )}
-          <h2 className="section-title">難易度を選ぼう</h2>
+
+          <h3 className="subsection-heading">難易度を選ぼう</h3>
           <div className="difficulty-grid">
             {DIFFICULTIES.map((d) => {
               const best = bestRecords[String(d.value)];
@@ -309,6 +339,7 @@ function App() {
               );
             })}
           </div>
+
           <div className="mode-picker" role="radiogroup" aria-label="並び替えの操作モード">
             <span className="mode-picker-label">操作モード</span>
             <div className="mode-toggle">
@@ -337,6 +368,7 @@ function App() {
                 : '入れ替え：ドラッグ元とドロップ先を入れ替えます'}
             </p>
           </div>
+
           <button
             type="button"
             className="primary-button"
@@ -349,6 +381,32 @@ function App() {
             ドラッグ＆ドロップ、または各カードの <span aria-hidden>▲▼</span> ボタンで並び替え
           </p>
         </section>
+
+        <footer className="site-footer">
+          <p className="site-footer-script" aria-hidden>
+            Thank you for visiting
+          </p>
+          <p className="site-footer-copy">
+            © 2026 ぽやぽや香屋ふぁんさいと. 公式とは関係のない非公式ファンサイトです。
+          </p>
+          <ul className="site-footer-links" aria-label="SNSリンク (準備中)">
+            <li>
+              <a href="#" aria-disabled="true" tabIndex={-1}>
+                X
+              </a>
+            </li>
+            <li>
+              <a href="#" aria-disabled="true" tabIndex={-1}>
+                YouTube
+              </a>
+            </li>
+            <li>
+              <a href="#" aria-disabled="true" tabIndex={-1}>
+                Discord
+              </a>
+            </li>
+          </ul>
+        </footer>
       </div>
     );
   }
