@@ -28,6 +28,10 @@ interface SortableContainerProps {
   videos: VideoData[];
   mode: MoveMode;
   onReorder: (videos: VideoData[]) => void;
+  hintLevel?: number;
+  positionCorrects?: boolean[];
+  oldestId?: string | null;
+  newestId?: string | null;
 }
 
 function reorder(videos: VideoData[], from: number, to: number, mode: MoveMode): VideoData[] {
@@ -64,7 +68,15 @@ const swapSortingStrategy: SortingStrategy = ({ activeIndex, overIndex, index, r
   return null;
 };
 
-export function SortableContainer({ videos, mode, onReorder }: SortableContainerProps) {
+export function SortableContainer({
+  videos,
+  mode,
+  onReorder,
+  hintLevel = 0,
+  positionCorrects,
+  oldestId = null,
+  newestId = null,
+}: SortableContainerProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(
@@ -114,17 +126,28 @@ export function SortableContainer({ videos, mode, onReorder }: SortableContainer
         strategy={mode === 'swap' ? swapSortingStrategy : verticalListSortingStrategy}
       >
         <ol className="sortable-container" aria-label="並び替え対象の動画">
-          {videos.map((video, index) => (
-            <li key={video.id} className="sortable-item">
-              <VideoCard
-                video={video}
-                index={index}
-                total={videos.length}
-                swapTarget={mode === 'swap' && activeId !== null && activeId !== video.id}
-                onMove={handleMove}
-              />
-            </li>
-          ))}
+          {videos.map((video, index) => {
+            const extremeBadge: 'oldest' | 'newest' | null =
+              video.id === oldestId
+                ? 'oldest'
+                : video.id === newestId
+                  ? 'newest'
+                  : null;
+            return (
+              <li key={video.id} className="sortable-item">
+                <VideoCard
+                  video={video}
+                  index={index}
+                  total={videos.length}
+                  swapTarget={mode === 'swap' && activeId !== null && activeId !== video.id}
+                  hintLevel={hintLevel}
+                  positionCorrect={positionCorrects?.[index] ?? false}
+                  extremeBadge={extremeBadge}
+                  onMove={handleMove}
+                />
+              </li>
+            );
+          })}
         </ol>
       </SortableContext>
       <DragOverlay dropAnimation={{ duration: 200 }}>

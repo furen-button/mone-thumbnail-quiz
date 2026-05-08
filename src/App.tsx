@@ -35,6 +35,13 @@ const DIFFICULTIES: { value: Difficulty; label: string; caption: string }[] = [
   { value: 7, label: '上級', caption: '7件' },
 ];
 
+const HINT_STAGES = [
+  { at: 20, label: '年を表示' },
+  { at: 40, label: '年月を表示' },
+  { at: 60, label: '正解位置をハイライト' },
+  { at: 90, label: '最古／最新を表示' },
+] as const;
+
 function App() {
   const [allVideos, setAllVideos] = useState<VideoData[]>([]);
   const [screen, setScreen] = useState<Screen>('menu');
@@ -123,10 +130,25 @@ function App() {
     setScreen('menu');
   };
 
-  const correctCount = useMemo(
-    () => currentVideos.filter((v, i) => correctVideos[i]?.id === v.id).length,
+  const positionCorrects = useMemo(
+    () => currentVideos.map((v, i) => correctVideos[i]?.id === v.id),
     [currentVideos, correctVideos]
   );
+
+  const correctCount = useMemo(
+    () => positionCorrects.filter(Boolean).length,
+    [positionCorrects]
+  );
+
+  const elapsedSec = elapsedMs / 1000;
+  const hintLevel = HINT_STAGES.reduce(
+    (acc, s) => (elapsedSec >= s.at ? acc + 1 : acc),
+    0
+  );
+  const nextHint = HINT_STAGES.find((s) => elapsedSec < s.at);
+  const remainingSec = nextHint ? Math.max(1, Math.ceil(nextHint.at - elapsedSec)) : 0;
+  const oldestId = correctVideos[0]?.id ?? null;
+  const newestId = correctVideos[correctVideos.length - 1]?.id ?? null;
 
   if (loading) {
     return (
@@ -277,12 +299,25 @@ function App() {
           >
             <div className="play-progress-fill" style={{ width: `${progress}%` }} />
           </div>
+          <p className="play-hint-banner" aria-live="polite">
+            {nextHint ? (
+              <>
+                次のヒント <strong>{remainingSec}秒後</strong> — {nextHint.label}
+              </>
+            ) : (
+              <>すべてのヒントが解放されました</>
+            )}
+          </p>
         </header>
 
         <SortableContainer
           videos={currentVideos}
           mode={moveMode}
           onReorder={handleReorder}
+          hintLevel={hintLevel}
+          positionCorrects={hintLevel >= 3 ? positionCorrects : undefined}
+          oldestId={hintLevel >= 4 ? oldestId : null}
+          newestId={hintLevel >= 4 ? newestId : null}
         />
 
         <div className="play-footer">
