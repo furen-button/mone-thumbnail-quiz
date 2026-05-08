@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { SortableContainer } from './components/SortableContainer';
 import { ResultModal } from './components/ResultModal';
-import type { VideoData } from './types/video';
+import type { VideoData, ChannelMeta } from './types/video';
 import {
   getRandomVideos,
   checkOrder,
@@ -59,6 +59,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedChannel, setSelectedChannel] = useState<string>(() => getSavedChannel());
+  const [channelMetas, setChannelMetas] = useState<Record<string, ChannelMeta>>({});
   const [bestRecords, setBestRecords] = useState<Record<string, BestRecord | null>>(() =>
     Object.fromEntries(
       DIFFICULTIES.map((d) => [d.value, getBestRecord(d.value, getSavedChannel())])
@@ -100,7 +101,19 @@ function App() {
         setLoading(false);
       }
     }
+    async function loadChannels() {
+      // channels.json は無くても動作する (fetch-videos 未実行時のフォールバック)
+      try {
+        const res = await fetch(`${import.meta.env.BASE_URL}data/channels.json`);
+        if (!res.ok) return;
+        const list: ChannelMeta[] = await res.json();
+        setChannelMetas(Object.fromEntries(list.map((c) => [c.id, c])));
+      } catch {
+        // 無視
+      }
+    }
     load();
+    loadChannels();
   }, []);
 
   useEffect(() => {
@@ -210,22 +223,61 @@ function App() {
         <section className="menu">
           {channels.length >= 2 && (
             <div className="channel-picker">
-              <label className="channel-picker-label" htmlFor="channel-select">
-                チャンネル
-              </label>
-              <select
-                id="channel-select"
-                className="channel-select"
-                value={selectedChannel}
-                onChange={(e) => changeChannel(e.target.value)}
+              <span className="channel-picker-label">チャンネル</span>
+              <div
+                className="channel-list"
+                role="radiogroup"
+                aria-label="クイズ対象のチャンネル"
               >
-                <option value={ALL_CHANNELS}>全チャンネル ({allVideos.length}件)</option>
-                {channels.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.title} ({c.count}件)
-                  </option>
-                ))}
-              </select>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={selectedChannel === ALL_CHANNELS}
+                  className={`channel-chip ${selectedChannel === ALL_CHANNELS ? 'active' : ''}`}
+                  onClick={() => changeChannel(ALL_CHANNELS)}
+                >
+                  <span className="channel-avatar avatar-all" aria-hidden>
+                    全
+                  </span>
+                  <span className="channel-chip-text">
+                    <span className="channel-chip-name">全チャンネル</span>
+                    <span className="channel-chip-count">{allVideos.length}件</span>
+                  </span>
+                </button>
+                {channels.map((c) => {
+                  const meta = channelMetas[c.id];
+                  const iconSrc = meta
+                    ? `${import.meta.env.BASE_URL}${meta.iconPath}`
+                    : null;
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={selectedChannel === c.id}
+                      className={`channel-chip ${selectedChannel === c.id ? 'active' : ''}`}
+                      onClick={() => changeChannel(c.id)}
+                    >
+                      {iconSrc ? (
+                        <img
+                          className="channel-avatar"
+                          src={iconSrc}
+                          alt=""
+                          loading="lazy"
+                        />
+                      ) : (
+                        <span className="channel-avatar avatar-fallback" aria-hidden>
+                          {c.title.slice(0, 1)}
+                        </span>
+                      )}
+                      <span className="channel-chip-text">
+                        <span className="channel-chip-name">{c.title}</span>
+                        <span className="channel-chip-count">{c.count}件</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
           <h2 className="section-title">難易度を選ぼう</h2>

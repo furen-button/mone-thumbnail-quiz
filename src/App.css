@@ -114,7 +114,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   margin-bottom: 18px;
 }
 
@@ -125,37 +125,85 @@
   color: rgba(255, 255, 255, 0.6);
 }
 
-.channel-select {
+.channel-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
   width: 100%;
-  max-width: 360px;
-  padding: 10px 36px 10px 14px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  color: var(--text-inverse);
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, rgba(255, 255, 255, 0.7) 50%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.7) 50%, transparent 50%);
-  background-position: calc(100% - 18px) center, calc(100% - 12px) center;
-  background-size: 6px 6px, 6px 6px;
-  background-repeat: no-repeat;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
-.channel-select:hover,
-.channel-select:focus {
+.channel-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px 5px 5px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  color: var(--text-inverse);
+  font-size: 0.85rem;
+  text-align: left;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease,
+    box-shadow 0.2s ease;
+}
+
+.channel-chip:hover {
   border-color: rgba(255, 255, 255, 0.45);
-  background-color: rgba(255, 255, 255, 0.12);
-  outline: none;
+  transform: translateY(-1px);
 }
 
-.channel-select option {
-  background: #1f2937;
+.channel-chip.active {
+  border-color: var(--accent);
+  background: linear-gradient(135deg, rgba(255, 93, 143, 0.18), rgba(255, 209, 102, 0.18));
+  box-shadow: 0 6px 18px rgba(255, 93, 143, 0.25);
+}
+
+.channel-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.channel-avatar.avatar-all {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
   color: var(--text-inverse);
+}
+
+.channel-avatar.avatar-fallback {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.6), rgba(147, 197, 253, 0.6));
+  color: var(--text-inverse);
+}
+
+.channel-chip-text {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 1px;
+  line-height: 1.15;
+  min-width: 0;
+}
+
+.channel-chip-name {
+  font-weight: 700;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.channel-chip-count {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.65);
+  font-variant-numeric: tabular-nums;
 }
 
 .difficulty-grid {

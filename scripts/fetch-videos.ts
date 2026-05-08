@@ -34,6 +34,80 @@ interface VideoData {
   channelTitle: string;
 }
 
+interface ChannelMeta {
+  id: string;
+  title: string;
+  iconPath: string; // public/ 相対パス (例: "channels/UCxxxx.jpg")
+}
+
+/**
+ * YouTube channels API で各チャンネルのタイトルとアイコン URL を取得し、
+ * アイコンを public/channels にダウンロードする。
+ */
+async function fetchChannelMetas(
+  channelIds: string[],
+  channelsDir: string
+): Promise<ChannelMeta[]> {
+  if (!YOUTUBE_API_KEY) {
+    throw new Error('YOUTUBE_API_KEY が設定されていません');
+  }
+  if (!fs.existsSync(channelsDir)) {
+    fs.mkdirSync(channelsDir, { recursive: true });
+  }
+
+  console.log('\nチャンネル情報を取得中...');
+  // channels.list は id を最大 50 件カンマ区切りで一度に取得できる
+  const url = new URL('https://www.googleapis.com/youtube/v3/channels');
+  url.searchParams.append('key', YOUTUBE_API_KEY);
+  url.searchParams.append('id', channelIds.join(','));
+  url.searchParams.append('part', 'snippet');
+  url.searchParams.append('maxResults', String(channelIds.length));
+
+  const response = await fetch(url.toString());
+  if (!response.ok) {
+    throw new Error(`YouTube channels API エラー: ${response.status} ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  const metas: ChannelMeta[] = [];
+
+  for (const item of data.items) {
+    const id: string = item.id;
+    const title: string = item.snippet.title;
+    const thumbs = item.snippet.thumbnails ?? {};
+    const iconUrl: string =
+      thumbs.medium?.url ?? thumbs.high?.url ?? thumbs.default?.url ?? '';
+    const iconFile = `${id}.jpg`;
+    const iconLocalPath = path.join(channelsDir, iconFile);
+
+    if (iconUrl && !fs.existsSync(iconLocalPath)) {
+      try {
+        await downloadThumbnail(iconUrl, iconLocalPath);
+        console.log(`  ${title}: アイコン取得`);
+        await sleep(DOWNLOAD_WAIT_MS);
+      } catch (err) {
+        console.error(`  ${title}: アイコン取得失敗`, err);
+      }
+    } else if (iconUrl) {
+      console.log(`  ${title}: アイコン取得済み (スキップ)`);
+    } else {
+      console.warn(`  ${title}: アイコン URL が取得できませんでした`);
+    }
+
+    metas.push({ id, title, iconPath: `channels/${iconFile}` });
+  }
+
+  // 設定されていたが API が返さなかったチャンネル ID を検出
+  const returned = new Set(metas.map((m) => m.id));
+  for (const id of channelIds) {
+    if (!returned.has(id)) {
+      console.warn(`  ⚠️  チャンネル ${id} の情報が取得できませんでした`);
+    }
+  }
+
+  return metas;
+}
+
 /**
  * YouTube Data APIから特定チャンネルの動画一覧を取得
  */
@@ -121,6 +195,7 @@ async function main() {
     const publicDir = path.join(__dirname, '../public');
     const dataDir = path.join(publicDir, 'data');
     const thumbnailsDir = path.join(publicDir, 'thumbnails');
+    const channelsDir = path.join(publicDir, 'channels');
 
     if (!fs.existsSync(dataDir)) {
       fs.mkdirSync(dataDir, { recursive: true });
@@ -140,6 +215,12 @@ async function main() {
     }
 
     console.log(`${channelIds.length} 個のチャンネルから動画を取得します\n`);
+
+    // チャンネル情報＋アイコンを先に取得
+    const channelMetas = await fetchChannelMetas(channelIds, channelsDir);
+    const channelsJsonPath = path.join(dataDir, 'channels.json');
+    fs.writeFileSync(channelsJsonPath, JSON.stringify(channelMetas, null, 2), 'utf-8');
+    console.log(`✅ ${channelsJsonPath} を生成しました\n`);
 
     // 動画情報取得（複数チャンネル）
     const allVideos: VideoData[] = [];
