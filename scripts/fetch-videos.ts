@@ -38,10 +38,11 @@ interface ChannelMeta {
   id: string;
   title: string;
   iconPath: string; // public/ 相対パス (例: "channels/UCxxxx.jpg")
+  uploadsPlaylistId: string; // アップロード動画プレイリスト ID
 }
 
 /**
- * YouTube channels API で各チャンネルのタイトルとアイコン URL を取得し、
+ * YouTube channels API で各チャンネルのタイトル・アイコン URL・アップロードプレイリスト ID を取得し、
  * アイコンを public/channels にダウンロードする。
  */
 async function fetchChannelMetas(
@@ -60,7 +61,7 @@ async function fetchChannelMetas(
   const url = new URL('https://www.googleapis.com/youtube/v3/channels');
   url.searchParams.append('key', YOUTUBE_API_KEY);
   url.searchParams.append('id', channelIds.join(','));
-  url.searchParams.append('part', 'snippet');
+  url.searchParams.append('part', 'snippet,contentDetails');
   url.searchParams.append('maxResults', String(channelIds.length));
 
   const response = await fetch(url.toString());
@@ -77,6 +78,7 @@ async function fetchChannelMetas(
     const thumbs = item.snippet.thumbnails ?? {};
     const iconUrl: string =
       thumbs.medium?.url ?? thumbs.high?.url ?? thumbs.default?.url ?? '';
+    const uploadsPlaylistId: string = item.contentDetails.relatedPlaylists.uploads;
     const iconFile = `${id}.jpg`;
     const iconLocalPath = path.join(channelsDir, iconFile);
 
@@ -94,7 +96,7 @@ async function fetchChannelMetas(
       console.warn(`  ${title}: アイコン URL が取得できませんでした`);
     }
 
-    metas.push({ id, title, iconPath: `channels/${iconFile}` });
+    metas.push({ id, title, iconPath: `channels/${iconFile}`, uploadsPlaylistId });
   }
 
   // 設定されていたが API が返さなかったチャンネル ID を検出
@@ -109,9 +111,11 @@ async function fetchChannelMetas(
 }
 
 /**
- * YouTube Data APIから特定チャンネルの動画一覧を取得
+ * アップロード動画プレイリスト経由でチャンネルの全動画を取得する。
+ * search.list（最大約500件・100ユニット/回）の代わりに
+ * playlistItems.list（無制限・1ユニット/回）を使うことで全件取得が可能。
  */
-async function fetchVideosFromChannel(channelId: string): Promise<VideoData[]> {
+async function fetchVideosFromChannel(uploadsPlaylistId: string): Promise<VideoData[]> {
   if (!YOUTUBE_API_KEY) {
     throw new Error('YOUTUBE_API_KEY が設定されていません');
   }
@@ -119,16 +123,13 @@ async function fetchVideosFromChannel(channelId: string): Promise<VideoData[]> {
   const videos: VideoData[] = [];
   let pageToken: string | undefined = undefined;
 
-  console.log(`チャンネル ${channelId} から動画情報を取得中...`);
+  console.log(`プレイリスト ${uploadsPlaylistId} から動画情報を取得中...`);
 
-  // 全ページ取得（nextPageTokenがなくなるまで）
   while (true) {
-    const url = new URL('https://www.googleapis.com/youtube/v3/search');
+    const url = new URL('https://www.googleapis.com/youtube/v3/playlistItems');
     url.searchParams.append('key', YOUTUBE_API_KEY);
-    url.searchParams.append('channelId', channelId);
-    url.searchParams.append('part', 'snippet');
-    url.searchParams.append('order', 'date');
-    url.searchParams.append('type', 'video');
+    url.searchParams.append('playlistId', uploadsPlaylistId);
+    url.searchParams.append('part', 'snippet,status');
     url.searchParams.append('maxResults', MAX_RESULTS.toString());
     if (pageToken) {
       url.searchParams.append('pageToken', pageToken);
@@ -136,18 +137,30 @@ async function fetchVideosFromChannel(channelId: string): Promise<VideoData[]> {
 
     const response = await fetch(url.toString());
     if (!response.ok) {
-      throw new Error(`YouTube API エラー: ${response.status} ${response.statusText}`);
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(`YouTube API エラー: ${response.status} ${errData?.error?.message ?? response.statusText}`);
     }
 
     const data = await response.json();
 
     for (const item of data.items) {
+      // 非公開・削除済み動画を除外
+      const privacy = item.status?.privacyStatus;
+      if (privacy === 'private' || privacy === 'privacyStatusUnspecified') {
+        continue;
+      }
+
+      const videoId: string = item.snippet.resourceId.videoId;
+      const thumbs = item.snippet.thumbnails ?? {};
+      const thumbnailUrl: string =
+        thumbs.high?.url ?? thumbs.medium?.url ?? thumbs.default?.url ?? '';
+
       videos.push({
-        id: item.id.videoId,
+        id: videoId,
         title: item.snippet.title,
         publishedAt: item.snippet.publishedAt,
-        thumbnailUrl: item.snippet.thumbnails.high.url, // 高解像度サムネイル
-        videoUrl: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+        thumbnailUrl,
+        videoUrl: `https://www.youtube.com/watch?v=${videoId}`,
         channelId: item.snippet.channelId,
         channelTitle: item.snippet.channelTitle,
       });
@@ -156,11 +169,8 @@ async function fetchVideosFromChannel(channelId: string): Promise<VideoData[]> {
     console.log(`${videos.length} 件取得済み`);
 
     pageToken = data.nextPageToken;
-    if (!pageToken) {
-      break;
-    }
+    if (!pageToken) break;
 
-    // API制限を避けるため待機
     await sleep(API_WAIT_MS);
   }
 
@@ -219,19 +229,21 @@ async function main() {
     // チャンネル情報＋アイコンを先に取得
     const channelMetas = await fetchChannelMetas(channelIds, channelsDir);
     const channelsJsonPath = path.join(dataDir, 'channels.json');
-    fs.writeFileSync(channelsJsonPath, JSON.stringify(channelMetas, null, 2), 'utf-8');
+    const channelsForJson = channelMetas.map(({ id, title, iconPath }) => ({ id, title, iconPath }));
+    fs.writeFileSync(channelsJsonPath, JSON.stringify(channelsForJson, null, 2), 'utf-8');
     console.log(`✅ ${channelsJsonPath} を生成しました\n`);
 
     // 動画情報取得（複数チャンネル）
     const allVideos: VideoData[] = [];
-    for (let i = 0; i < channelIds.length; i++) {
-      const channelId = channelIds[i];
-      const videos = await fetchVideosFromChannel(channelId);
+    for (let i = 0; i < channelMetas.length; i++) {
+      const { id: channelId, uploadsPlaylistId } = channelMetas[i];
+      console.log(`チャンネル ${channelId} の動画を取得中...`);
+      const videos = await fetchVideosFromChannel(uploadsPlaylistId);
       allVideos.push(...videos);
       console.log(`  → ${videos.length} 件取得\n`);
       
       // 次のチャンネル取得前に待機
-      if (i < channelIds.length - 1) {
+      if (i < channelMetas.length - 1) {
         console.log('次のチャンネル取得前に待機中...\n');
         await sleep(API_WAIT_MS * 2);
       }
