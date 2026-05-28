@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { SortableContainer } from './components/SortableContainer';
 import { ResultModal } from './components/ResultModal';
+import { TutorialModal } from './components/TutorialModal';
 import type { VideoData, ChannelMeta } from './types/video';
 import {
   getRandomVideos,
@@ -14,6 +15,8 @@ import {
   saveMoveMode,
   getSavedChannel,
   saveChannel,
+  getTutorialSeen,
+  saveTutorialSeen,
   getChannels,
   filterByChannel,
   ALL_CHANNELS,
@@ -66,6 +69,10 @@ function App() {
     ) as Record<string, BestRecord | null>
   );
   const [moveMode, setMoveMode] = useState<MoveMode>(() => getSavedMoveMode());
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+  const [isTutorialSeen, setIsTutorialSeen] = useState(() => getTutorialSeen());
+  const [pausedAt, setPausedAt] = useState<number | null>(null);
+  const [isAutoTutorialSession, setIsAutoTutorialSession] = useState(false);
 
   const channels = useMemo(() => getChannels(allVideos), [allVideos]);
   const availableVideos = useMemo(
@@ -117,12 +124,36 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (screen !== 'playing' || startedAt === null) return;
+    if (screen !== 'playing' || startedAt === null || isTutorialOpen) return;
     const id = window.setInterval(() => {
       setElapsedMs(Date.now() - startedAt);
     }, 100);
     return () => window.clearInterval(id);
-  }, [screen, startedAt]);
+  }, [screen, startedAt, isTutorialOpen]);
+
+  const openTutorial = () => {
+    setIsAutoTutorialSession(false);
+    if (screen === 'playing' && startedAt !== null && pausedAt === null) {
+      const now = Date.now();
+      setPausedAt(now);
+      setElapsedMs(now - startedAt);
+    }
+    setIsTutorialOpen(true);
+  };
+
+  const closeTutorial = () => {
+    if (pausedAt !== null) {
+      const pausedDuration = Date.now() - pausedAt;
+      setStartedAt((prev) => (prev === null ? null : prev + pausedDuration));
+      setPausedAt(null);
+    }
+    if (isAutoTutorialSession && !isTutorialSeen) {
+      saveTutorialSeen();
+      setIsTutorialSeen(true);
+    }
+    setIsAutoTutorialSession(false);
+    setIsTutorialOpen(false);
+  };
 
   const startGame = (chosen: Difficulty = difficulty) => {
     if (availableVideos.length < chosen) return;
@@ -134,6 +165,11 @@ function App() {
     setElapsedMs(0);
     setResult(null);
     setScreen('playing');
+    if (!isTutorialSeen) {
+      setPausedAt(Date.now());
+      setIsAutoTutorialSession(true);
+      setIsTutorialOpen(true);
+    }
   };
 
   const handleReorder = (videos: VideoData[]) => setCurrentVideos(videos);
@@ -164,6 +200,9 @@ function App() {
 
   const backToMenu = () => {
     setResult(null);
+    setPausedAt(null);
+    setIsAutoTutorialSession(false);
+    setIsTutorialOpen(false);
     setScreen('menu');
   };
 
@@ -214,7 +253,8 @@ function App() {
         ? `${import.meta.env.BASE_URL}${channelMetas[selectedChannel].iconPath}`
         : null;
     return (
-      <div className="app site">
+      <>
+        <div className="app site">
         <header className="hero" id="top">
           <span className="hero-script" aria-hidden>
             Welcome
@@ -370,6 +410,13 @@ function App() {
           >
             ゲーム開始
           </button>
+          <button
+            type="button"
+            className="ghost-button menu-help-button"
+            onClick={openTutorial}
+          >
+            ヘルプ
+          </button>
           <p className="menu-hint">
             ドラッグ＆ドロップ、または各カードの <span aria-hidden>▲▼</span> ボタンで並び替え
           </p>
@@ -400,7 +447,9 @@ function App() {
             </li>
           </ul>
         </footer>
-      </div>
+        </div>
+        {isTutorialOpen && <TutorialModal onClose={closeTutorial} />}
+      </>
     );
   }
 
@@ -408,7 +457,8 @@ function App() {
     const total = currentVideos.length;
     const progress = total > 0 ? (correctCount / total) * 100 : 0;
     return (
-      <div className="app">
+      <>
+        <div className="app">
         <header className="play-header">
           <div className="play-header-row">
             <div className="play-chip">
@@ -443,6 +493,9 @@ function App() {
                 入れ替え
               </button>
             </div>
+            <button type="button" className="ghost-button play-help-button" onClick={openTutorial}>
+              ヘルプ
+            </button>
             <div className="play-chip timer" aria-live="polite">
               <span className="chip-label">タイム</span>
               <span className="chip-value">{formatDuration(elapsedMs)}</span>
@@ -487,7 +540,9 @@ function App() {
             回答をチェック
           </button>
         </div>
-      </div>
+        </div>
+        {isTutorialOpen && <TutorialModal onClose={closeTutorial} />}
+      </>
     );
   }
 

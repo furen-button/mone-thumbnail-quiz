@@ -1,0 +1,114 @@
+.tutorial-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  padding: 20px;
+  background: rgba(74, 74, 74, 0.45);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-y: auto;
+  animation: tutorialFadeIn 0.2s ease;
+}
+
+@keyframes tutorialFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.tutorial-modal {
+  width: 100%;
+  max-width: 740px;
+  margin: 20px auto;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.tutorial-header {
+  padding: 28px 22px 18px;
+  text-align: center;
+  background: linear-gradient(135deg, var(--peach-soft), var(--peach), var(--lotus));
+}
+
+.tutorial-title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  color: var(--text);
+  letter-spacing: 0.04em;
+}
+
+.tutorial-subtitle {
+  margin-top: 8px;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}
+
+.tutorial-content {
+  padding: 20px;
+  display: grid;
+  gap: 14px;
+}
+
+.tutorial-section {
+  border: 1px solid rgba(255, 218, 185, 0.7);
+  border-radius: var(--radius-md);
+  background: var(--surface-soft);
+  padding: 14px 14px 12px;
+}
+
+.tutorial-section h3 {
+  font-family: var(--font-serif);
+  color: var(--text);
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.tutorial-section p,
+.tutorial-section li {
+  color: var(--text-soft);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.tutorial-section ul {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.tutorial-note {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 183, 197, 0.2);
+  border: 1px solid rgba(245, 143, 165, 0.45);
+  color: var(--text);
+}
+
+.tutorial-footer {
+  padding: 12px 20px 20px;
+}
+
+.tutorial-footer .primary-button {
+  margin: 0 auto;
+}
+
+@media (max-width: 600px) {
+  .tutorial-modal-overlay {
+    padding: 12px;
+  }
+
+  .tutorial-header {
+    padding: 20px 16px 14px;
+  }
+
+  .tutorial-content {
+    padding: 14px;
+  }
+}

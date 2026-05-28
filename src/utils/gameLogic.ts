@@ -114,6 +114,7 @@ export interface BestRecord {
 const STORAGE_KEY = 'nijisanji-thumbnail-quiz:best-records:v1';
 const MODE_KEY = 'nijisanji-thumbnail-quiz:move-mode:v1';
 const CHANNEL_KEY = 'nijisanji-thumbnail-quiz:channel:v1';
+const TUTORIAL_KEY = 'nijisanji-thumbnail-quiz:tutorial-seen:v1';
 
 export function getSavedMoveMode(): MoveMode {
   try {
@@ -143,6 +144,22 @@ export function getSavedChannel(): string {
 export function saveChannel(channelKey: string): void {
   try {
     localStorage.setItem(CHANNEL_KEY, channelKey);
+  } catch {
+    // 無視
+  }
+}
+
+export function getTutorialSeen(): boolean {
+  try {
+    return localStorage.getItem(TUTORIAL_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function saveTutorialSeen(): void {
+  try {
+    localStorage.setItem(TUTORIAL_KEY, '1');
   } catch {
     // 無視
   }
