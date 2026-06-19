@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import './TutorialModal.css';
 
 interface TutorialModalProps {
@@ -5,11 +6,54 @@ interface TutorialModalProps {
 }
 
 export function TutorialModal({ onClose }: TutorialModalProps) {
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  // 初期フォーカス移動
+  useEffect(() => {
+    closeRef.current?.focus();
+  }, []);
+
+  // Escape キーで閉じる & フォーカストラップ
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key === 'Tab') {
+        const overlay = overlayRef.current;
+        if (!overlay) return;
+        const focusable = overlay.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   return (
-    <div className="tutorial-modal-overlay" role="dialog" aria-modal="true" aria-label="チュートリアル">
+    <div
+      ref={overlayRef}
+      className="tutorial-modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="tutorial-title"
+    >
       <div className="tutorial-modal">
         <header className="tutorial-header">
-          <h2 className="tutorial-title">遊び方ガイド</h2>
+          <h2 id="tutorial-title" className="tutorial-title">遊び方ガイド</h2>
           <p className="tutorial-subtitle">初回はここから、いつでもヘルプで見返せます。</p>
         </header>
 
@@ -41,7 +85,7 @@ export function TutorialModal({ onClose }: TutorialModalProps) {
         </div>
 
         <footer className="tutorial-footer">
-          <button type="button" className="primary-button" onClick={onClose}>
+          <button ref={closeRef} type="button" className="primary-button" onClick={onClose}>
             チュートリアルを閉じる
           </button>
         </footer>

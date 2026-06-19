@@ -179,7 +179,10 @@ function App() {
     const durationMs = startedAt ? finishedAt - startedAt : 0;
     const isCorrect = checkOrder(currentVideos);
     const accuracy = calculateAccuracy(currentVideos, correctVideos);
-    const isNewBest = updateBestRecord(difficulty, selectedChannel, { accuracy, durationMs });
+    // ベスト記録はパーフェクト（全問正解）時のみ更新
+    const isNewBest = isCorrect
+      ? updateBestRecord(difficulty, selectedChannel, { accuracy, durationMs })
+      : false;
     setBestRecords((prev) => ({
       ...prev,
       [String(difficulty)]: getBestRecord(difficulty, selectedChannel),
@@ -254,7 +257,7 @@ function App() {
         : null;
     return (
       <>
-        <div className="app site">
+        <div className="app site" inert={isTutorialOpen ? true : undefined}>
         <header className="hero" id="top">
           <span className="hero-script" aria-hidden>
             Welcome
@@ -458,7 +461,7 @@ function App() {
     const progress = total > 0 ? (correctCount / total) * 100 : 0;
     return (
       <>
-        <div className="app">
+        <div className="app" inert={isTutorialOpen ? true : undefined}>
         <header className="play-header">
           <div className="play-header-row">
             <div className="play-chip">
@@ -550,7 +553,7 @@ function App() {
   if (!result) return null;
   return (
     <>
-      <div className="app app-muted">
+      <div className="app app-muted" inert>
         <header className="play-header">
           <div className="play-header-row">
             <div className="play-chip">

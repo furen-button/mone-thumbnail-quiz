@@ -10,11 +10,16 @@ export type Difficulty = 5 | 7;
 export type MoveMode = 'insert' | 'swap';
 
 /**
- * 配列からランダムにN件抽出
+ * 配列からランダムにN件抽出（Fisher-Yates シャッフル）
  */
 export function getRandomVideos(videos: VideoData[], count: number): VideoData[] {
-  const shuffled = [...videos].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, count);
+  const arr = [...videos];
+  // Fisher-Yates シャッフル
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr.slice(0, count);
 }
 
 /**

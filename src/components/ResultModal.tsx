@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { VideoData } from '../types/video';
 import { formatDuration } from '../utils/gameLogic';
 import { burstConfetti } from '../utils/confetti';
@@ -25,9 +25,46 @@ export function ResultModal({
   onRetry,
   onPlayAgain,
 }: ResultModalProps) {
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const retryRef = useRef<HTMLButtonElement>(null);
+
   useEffect(() => {
     if (isCorrect) burstConfetti();
   }, [isCorrect]);
+
+  // 初期フォーカス移動
+  useEffect(() => {
+    retryRef.current?.focus();
+  }, []);
+
+  // Escape キーで閉じる（メニューへ戻る）& フォーカストラップ
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onRetry();
+        return;
+      }
+      if (e.key === 'Tab') {
+        const overlay = overlayRef.current;
+        if (!overlay) return;
+        const focusable = overlay.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onRetry]);
 
   const formatDate = (dateString: string) => {
     const d = new Date(dateString);
@@ -43,10 +80,16 @@ export function ResultModal({
     : '正しい順序を見比べてみよう。';
 
   return (
-    <div className="result-modal-overlay" role="dialog" aria-modal="true">
+    <div
+      ref={overlayRef}
+      className="result-modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="result-headline"
+    >
       <div className={`result-modal ${isCorrect ? 'is-correct' : 'is-wrong'}`}>
         <div className="result-header">
-          <h2 className="result-headline">{headline}</h2>
+          <h2 id="result-headline" className="result-headline">{headline}</h2>
           <p className="result-sub">{subheadline}</p>
           <div className="result-stats">
             <div className="stat">
@@ -111,7 +154,7 @@ export function ResultModal({
         </div>
 
         <div className="result-footer">
-          <button type="button" className="ghost-button" onClick={onRetry}>
+          <button ref={retryRef} type="button" className="ghost-button" onClick={onRetry}>
             もう一度挑戦
           </button>
           <button type="button" className="primary-button" onClick={onPlayAgain}>
