@@ -42,9 +42,7 @@ const DIFFICULTIES: { value: Difficulty; label: string; caption: string }[] = [
 
 const HINT_STAGES = [
   { at: 20, label: '年を表示' },
-  { at: 40, label: '年月を表示' },
-  { at: 60, label: '正解位置をハイライト' },
-  { at: 90, label: '最古／最新を表示' },
+  { at: 40, label: '正解位置をハイライト' },
 ] as const;
 
 function App() {
@@ -217,8 +215,6 @@ function App() {
   );
   const nextHint = HINT_STAGES.find((s) => elapsedSec < s.at);
   const remainingSec = nextHint ? Math.max(1, Math.ceil(nextHint.at - elapsedSec)) : 0;
-  const oldestId = correctVideos[0]?.id ?? null;
-  const newestId = correctVideos[correctVideos.length - 1]?.id ?? null;
 
   if (loading) {
     return (
@@ -440,15 +436,20 @@ function App() {
               <span className="chip-value">{formatDuration(elapsedMs)}</span>
             </div>
           </div>
-          <div
-            className="play-progress"
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={total}
-            aria-valuenow={correctCount}
-            aria-label="暫定で正しい位置のカード数"
-          >
-            <div className="play-progress-fill" style={{ width: `${progress}%` }} />
+          <div className="play-progress-wrap">
+            <div
+              className="play-progress"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={total}
+              aria-valuenow={correctCount}
+              aria-label="暫定で正しい位置のカード数"
+            >
+              <div className="play-progress-fill" style={{ width: `${progress}%` }} />
+            </div>
+            <span className="play-progress-label">
+              {correctCount}/{total} 正解位置
+            </span>
           </div>
           <p className="play-hint-banner" aria-live="polite">
             {nextHint ? (
@@ -466,9 +467,9 @@ function App() {
           mode="swap"
           onReorder={handleReorder}
           hintLevel={hintLevel}
-          positionCorrects={hintLevel >= 3 ? positionCorrects : undefined}
-          oldestId={hintLevel >= 4 ? oldestId : null}
-          newestId={hintLevel >= 4 ? newestId : null}
+          positionCorrects={hintLevel >= 2 ? positionCorrects : undefined}
+          oldestId={null}
+          newestId={null}
         />
 
         <div className="play-footer">

@@ -563,9 +563,16 @@
   font-size: 0.75rem;
 }
 
-.play-progress {
+.play-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin-top: 6px;
-  height: 6px;
+}
+
+.play-progress {
+  flex: 1;
+  height: 10px;
   border-radius: var(--radius-pill);
   background: var(--surface-soft);
   overflow: hidden;
@@ -576,6 +583,15 @@
   height: 100%;
   background: linear-gradient(90deg, var(--lotus), var(--peach-deep));
   transition: width 0.3s ease;
+}
+
+.play-progress-label {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-soft);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .play-hint-banner {

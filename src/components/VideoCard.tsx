@@ -17,10 +17,7 @@ interface VideoCardProps {
 function formatHintDate(iso: string, level: number): string | null {
   if (level < 1) return null;
   const d = new Date(iso);
-  const y = d.getFullYear();
-  if (level < 2) return `${y}年`;
-  const m = d.getMonth() + 1;
-  return `${y}年${m}月`;
+  return `${d.getFullYear()}年`;
 }
 
 export function VideoCard({
