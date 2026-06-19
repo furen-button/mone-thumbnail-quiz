@@ -15,18 +15,16 @@ import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
   type SortingStrategy,
 } from '@dnd-kit/sortable';
 import { VideoCard } from './VideoCard';
 import type { VideoData } from '../types/video';
-import type { MoveMode } from '../utils/gameLogic';
 import { playDragStart, playDrop } from '../utils/sound';
 import './SortableContainer.css';
 
 interface SortableContainerProps {
   videos: VideoData[];
-  mode: MoveMode;
+  mode?: 'swap';
   onReorder: (videos: VideoData[]) => void;
   hintLevel?: number;
   positionCorrects?: boolean[];
@@ -34,13 +32,10 @@ interface SortableContainerProps {
   newestId?: string | null;
 }
 
-function reorder(videos: VideoData[], from: number, to: number, mode: MoveMode): VideoData[] {
-  if (mode === 'swap') {
-    const next = [...videos];
-    [next[from], next[to]] = [next[to], next[from]];
-    return next;
-  }
-  return arrayMove(videos, from, to);
+function reorder(videos: VideoData[], from: number, to: number): VideoData[] {
+  const next = [...videos];
+  [next[from], next[to]] = [next[to], next[from]];
+  return next;
 }
 
 /**
@@ -70,7 +65,6 @@ const swapSortingStrategy: SortingStrategy = ({ activeIndex, overIndex, index, r
 
 export function SortableContainer({
   videos,
-  mode,
   onReorder,
   hintLevel = 0,
   positionCorrects,
@@ -96,14 +90,14 @@ export function SortableContainer({
       const from = videos.findIndex((v) => v.id === active.id);
       const to = videos.findIndex((v) => v.id === over.id);
       if (from !== -1 && to !== -1) {
-        onReorder(reorder(videos, from, to, mode));
+        onReorder(reorder(videos, from, to));
         playDrop();
       }
     }
     setActiveId(null);
   };
 
-  // ↑↓ ボタンは隣接移動なので insert/swap どちらでも結果は同じ (swap 隣接 = arrayMove ±1)
+  // ↑↓ ボタンは隣接移動なので arrayMove ±1 と同じ
   const handleMove = (from: number, direction: -1 | 1) => {
     const to = from + direction;
     if (to < 0 || to >= videos.length) return;
@@ -123,7 +117,7 @@ export function SortableContainer({
     >
       <SortableContext
         items={videos.map((v) => v.id)}
-        strategy={mode === 'swap' ? swapSortingStrategy : verticalListSortingStrategy}
+        strategy={swapSortingStrategy}
       >
         <ol className="sortable-container" aria-label="並び替え対象の動画">
           {videos.map((video, index) => {
@@ -139,7 +133,7 @@ export function SortableContainer({
                   video={video}
                   index={index}
                   total={videos.length}
-                  swapTarget={mode === 'swap' && activeId !== null && activeId !== video.id}
+                  swapTarget={activeId !== null && activeId !== video.id}
                   hintLevel={hintLevel}
                   positionCorrect={positionCorrects?.[index] ?? false}
                   extremeBadge={extremeBadge}

@@ -11,8 +11,6 @@ import {
   formatDuration,
   getBestRecord,
   updateBestRecord,
-  getSavedMoveMode,
-  saveMoveMode,
   getSavedChannel,
   saveChannel,
   getTutorialSeen,
@@ -22,7 +20,6 @@ import {
   ALL_CHANNELS,
   type Difficulty,
   type BestRecord,
-  type MoveMode,
 } from './utils/gameLogic';
 import { playSuccess, playFailure } from './utils/sound';
 import './App.css';
@@ -68,7 +65,6 @@ function App() {
       DIFFICULTIES.map((d) => [d.value, getBestRecord(d.value, getSavedChannel())])
     ) as Record<string, BestRecord | null>
   );
-  const [moveMode, setMoveMode] = useState<MoveMode>(() => getSavedMoveMode());
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [isTutorialSeen, setIsTutorialSeen] = useState(() => getTutorialSeen());
   const [pausedAt, setPausedAt] = useState<number | null>(null);
@@ -79,11 +75,6 @@ function App() {
     () => filterByChannel(allVideos, selectedChannel),
     [allVideos, selectedChannel]
   );
-
-  const changeMoveMode = (mode: MoveMode) => {
-    setMoveMode(mode);
-    saveMoveMode(mode);
-  };
 
   const changeChannel = (channelKey: string) => {
     setSelectedChannel(channelKey);
@@ -376,35 +367,6 @@ function App() {
             })}
           </div>
 
-          <div className="mode-picker" role="radiogroup" aria-label="並び替えの操作モード">
-            <span className="mode-picker-label">操作モード</span>
-            <div className="mode-toggle">
-              <button
-                type="button"
-                role="radio"
-                aria-checked={moveMode === 'insert'}
-                className={`mode-toggle-option ${moveMode === 'insert' ? 'active' : ''}`}
-                onClick={() => changeMoveMode('insert')}
-              >
-                挿入
-              </button>
-              <button
-                type="button"
-                role="radio"
-                aria-checked={moveMode === 'swap'}
-                className={`mode-toggle-option ${moveMode === 'swap' ? 'active' : ''}`}
-                onClick={() => changeMoveMode('swap')}
-              >
-                入れ替え
-              </button>
-            </div>
-            <p className="mode-picker-help">
-              {moveMode === 'insert'
-                ? '挿入：ドラッグ先に差し込み、間のカードがずれます'
-                : '入れ替え：ドラッグ元とドロップ先を入れ替えます'}
-            </p>
-          </div>
-
           <button
             type="button"
             className="primary-button"
@@ -470,32 +432,6 @@ function App() {
                 {difficulty === 5 ? '初級 (5件)' : '上級 (7件)'}
               </span>
             </div>
-            <div
-              className="mode-toggle"
-              role="radiogroup"
-              aria-label="並び替えの操作モード"
-            >
-              <button
-                type="button"
-                role="radio"
-                aria-checked={moveMode === 'insert'}
-                className={`mode-toggle-option ${moveMode === 'insert' ? 'active' : ''}`}
-                onClick={() => changeMoveMode('insert')}
-                title="ドラッグ先に挿入し、間のカードがずれる"
-              >
-                挿入
-              </button>
-              <button
-                type="button"
-                role="radio"
-                aria-checked={moveMode === 'swap'}
-                className={`mode-toggle-option ${moveMode === 'swap' ? 'active' : ''}`}
-                onClick={() => changeMoveMode('swap')}
-                title="ドラッグ元とドロップ先を入れ替える"
-              >
-                入れ替え
-              </button>
-            </div>
             <button type="button" className="ghost-button play-help-button" onClick={openTutorial}>
               ヘルプ
             </button>
@@ -527,7 +463,7 @@ function App() {
 
         <SortableContainer
           videos={currentVideos}
-          mode={moveMode}
+          mode="swap"
           onReorder={handleReorder}
           hintLevel={hintLevel}
           positionCorrects={hintLevel >= 3 ? positionCorrects : undefined}
@@ -570,7 +506,7 @@ function App() {
         </header>
         <SortableContainer
           videos={result.userVideos}
-          mode={moveMode}
+          mode="swap"
           onReorder={() => {}}
         />
       </div>

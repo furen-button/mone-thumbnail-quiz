@@ -73,17 +73,11 @@ test.describe('ゲーム開始', () => {
   });
 });
 
-test.describe('操作モード (挿入 / 入れ替え)', () => {
-  test('挿入モードではドラッグでカードが押し出される / 入れ替えモードでは 2 枚だけが交換される', async ({
+test.describe('入れ替えモード', () => {
+  test('ドラッグで 2 枚だけが交換される', async ({
     page,
   }) => {
-    // 挿入モード: 1番目 を 3番目の位置にドラッグ → 1番目は3番目へ、2,3番目は1つずつ上にずれる
-    await page.goto(BASE);
-    await page.getByRole('radio', { name: '挿入' }).click();
-    await page.getByRole('button', { name: /初級/ }).click();
-    await page.getByRole('button', { name: 'ゲーム開始' }).click();
-    await closeTutorialIfVisible(page);
-    const before = await readCardIds(page);
+    await startGame(page, '初級');
 
     const dragHandle = (i: number) =>
       page.locator('.sortable-item').nth(i).locator('.video-card-drag');
@@ -102,41 +96,11 @@ test.describe('操作モード (挿入 / 入れ替え)', () => {
       await page.waitForTimeout(300);
     }
 
-    await dragByIndex(0, 2);
-    const afterInsert = await readCardIds(page);
-    // 挿入: [a,b,c,d,e] → [b,c,a,d,e] (0 が 2 に挿入、1,2 が1つ上にずれる)
-    expect(afterInsert).toEqual([before[1], before[2], before[0], before[3], before[4]]);
-
-    // メニューに戻って入れ替えモードに
-    await page.getByRole('button', { name: '回答をチェック' }).click();
-    await page.getByRole('button', { name: 'もう一度挑戦' }).click();
-    await page.getByRole('radio', { name: '入れ替え' }).click();
-    await page.getByRole('button', { name: /初級/ }).click();
-    await page.getByRole('button', { name: 'ゲーム開始' }).click();
-    await closeTutorialIfVisible(page);
-
-    const before2 = await readCardIds(page);
+    const before = await readCardIds(page);
     await dragByIndex(0, 2);
     const afterSwap = await readCardIds(page);
     // 入れ替え: [a,b,c,d,e] → [c,b,a,d,e] (0 と 2 だけが交換)
-    expect(afterSwap).toEqual([before2[2], before2[1], before2[0], before2[3], before2[4]]);
-  });
-
-  test('初期表示では入れ替えモードが選択されている', async ({ page }) => {
-    await page.goto(BASE);
-    await expect(
-      page.getByRole('radio', { name: '入れ替え', checked: true }).first()
-    ).toBeVisible();
-  });
-
-  test('モード選択は localStorage に保存される', async ({ page }) => {
-    await page.goto(BASE);
-    // デフォルト (入れ替え) から挿入へ切替 → reload 後も挿入のまま
-    await page.getByRole('radio', { name: '挿入' }).first().click();
-    await page.reload();
-    await expect(
-      page.getByRole('radio', { name: '挿入', checked: true }).first()
-    ).toBeVisible();
+    expect(afterSwap).toEqual([before[2], before[1], before[0], before[3], before[4]]);
   });
 });
 

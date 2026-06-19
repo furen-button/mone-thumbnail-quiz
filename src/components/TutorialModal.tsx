@@ -66,9 +66,8 @@ export function TutorialModal({ onClose }: TutorialModalProps) {
           <section className="tutorial-section">
             <h3>操作方法</h3>
             <ul>
-              <li>ドラッグ&ドロップで並び替えできます。</li>
+              <li>ドラッグ&ドロップで並び替えできます。ドラッグ元とドロップ先が入れ替わります。</li>
               <li>カード右側の ▲▼ ボタンでも並び替えできます。</li>
-              <li>挿入/入れ替えモードはヘッダーからいつでも切り替えできます。</li>
             </ul>
             <p className="tutorial-note">
               端末によってはドラッグ操作が正常に動かない場合があります。その場合は ▲▼ ボタン操作を利用してください。

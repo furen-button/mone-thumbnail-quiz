@@ -3,13 +3,6 @@ import type { VideoData } from '../types/video';
 export type Difficulty = 5 | 7;
 
 /**
- * 並び替えの操作モード
- * - insert: ドラッグ先に挿入し、間のカードがずれる (標準のソート UI)
- * - swap:   ドラッグ元とドラッグ先を単純に位置交換する
- */
-export type MoveMode = 'insert' | 'swap';
-
-/**
  * 配列からランダムにN件抽出（Fisher-Yates シャッフル）
  */
 export function getRandomVideos(videos: VideoData[], count: number): VideoData[] {
@@ -117,26 +110,8 @@ export interface BestRecord {
 }
 
 const STORAGE_KEY = 'nijisanji-thumbnail-quiz:best-records:v1';
-const MODE_KEY = 'nijisanji-thumbnail-quiz:move-mode:v1';
 const CHANNEL_KEY = 'nijisanji-thumbnail-quiz:channel:v1';
 const TUTORIAL_KEY = 'nijisanji-thumbnail-quiz:tutorial-seen:v1';
-
-export function getSavedMoveMode(): MoveMode {
-  try {
-    const raw = localStorage.getItem(MODE_KEY);
-    return raw === 'insert' ? 'insert' : 'swap';
-  } catch {
-    return 'swap';
-  }
-}
-
-export function saveMoveMode(mode: MoveMode): void {
-  try {
-    localStorage.setItem(MODE_KEY, mode);
-  } catch {
-    // 無視
-  }
-}
 
 export function getSavedChannel(): string {
   try {
