@@ -390,20 +390,10 @@ function App() {
           <p className="site-footer-copy">
             公式とは関係のない非公式ファンサイトです。
           </p>
-          <ul className="site-footer-links" aria-label="SNSリンク (準備中)">
+          <ul className="site-footer-links">
             <li>
-              <a href="#" aria-disabled="true" tabIndex={-1}>
+              <a href="https://x.com/hero_master_j" target="_blank" rel="noopener noreferrer">
                 X
-              </a>
-            </li>
-            <li>
-              <a href="#" aria-disabled="true" tabIndex={-1}>
-                YouTube
-              </a>
-            </li>
-            <li>
-              <a href="#" aria-disabled="true" tabIndex={-1}>
-                Discord
               </a>
             </li>
           </ul>
